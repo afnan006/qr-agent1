@@ -1,0 +1,36 @@
+# Node.js dependencies
+node_modules/
+dist/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment variables
+.env
+
+# Vite cache
+.vite/
+
+# IDE-specific files
+.vscode/
+.idea/
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# Build artifacts
+*.log
+*.lock
+*.cache
+
+# Coverage reports
+coverage/
+
+# Tailwind CSS generated files
+*.css.map
+
+# Fonts (if not included in version control)
+public/assets/fonts/*.woff2
