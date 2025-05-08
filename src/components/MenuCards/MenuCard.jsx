@@ -22,7 +22,7 @@ export default function MenuCard({ item }) {
       <div className="p-4">
         <div className="flex justify-between items-start mb-2">
           <h3 className="font-medium text-lg">{item.name}</h3>
-          <span className="font-mono text-[#4C4C9D] font-medium">${item.price.toFixed(2)}</span>
+          <span className="font-mono text-[#4C4C9D] font-medium">₹{item.price.toFixed(2)}</span>
         </div>
         
         <p className="text-sm text-gray-600 mb-4">{item.description}</p>

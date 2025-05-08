@@ -1,10 +1,11 @@
-import React, { useEffect, useState, Suspense } from 'react';
-import { Routes, Route, useLocation, useNavigate } from 'react-router-dom';
+import React, { useEffect, useState, Suspense  } from 'react';
+import { Routes, Route, useLocation, useNavigate} from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import Lottie from 'react-lottie-player';
 
 // Lazy load pages for better initial load performance
 const WelcomePage = React.lazy(() => import('./pages/WelcomePage'));
+const OrderModePage = React.lazy(() => import('./pages/OrderModePage'));
 const ChatPage = React.lazy(() => import('./pages/ChatPage'));
 const MenuPage = React.lazy(() => import('./pages/MenuPage'));
 const PaymentPage = React.lazy(() => import('./pages/PaymentPage'));
@@ -106,6 +107,7 @@ function App() {
               <Suspense fallback={<PageLoader />}>
                 <Routes location={location} key={location.pathname}>
                   <Route path="/welcome" element={<WelcomePage />} />
+                  <Route path="/order-mode" element={<OrderModePage />} />
                   <Route path="/chat" element={<ChatPage />} />
                   <Route path="/menu" element={<MenuPage />} />
                   <Route path="/payment" element={<PaymentPage />} />

@@ -69,7 +69,7 @@ const WelcomePage = () => {
   };
   
   const handleFinish = () => {
-    navigate('/chat');
+    navigate('/order-mode');
   };
   
   // Animation variants
@@ -138,7 +138,7 @@ const WelcomePage = () => {
                   name="name"
                   value={formData.name}
                   onChange={handleInputChange}
-                  placeholder="John Doe"
+                  placeholder="Afnan Ahmed"
                   required
                   className="input-field pl-10"
                 />
@@ -158,12 +158,12 @@ const WelcomePage = () => {
               <div className="relative">
                 <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#7A7F87]" size={18} />
                 <input
-                  type="tel"
+                  type="mobile-phone"
                   id="phone"
                   name="phone"
                   value={formData.phone}
                   onChange={handleInputChange}
-                  placeholder="(123) 456-7890"
+                  placeholder="+91 8296635241"
                   required
                   className="input-field pl-10"
                 />
