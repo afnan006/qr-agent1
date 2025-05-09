@@ -1,0 +1,15 @@
+/* Organization Admin Theme */
+:root {
+  --oa-primary: #2d3748;
+  --oa-primary-light: #4a5568;
+  --oa-primary-dark: #1a202c;
+  --oa-accent: #edf2f7;
+  --oa-background: #f7fafc;
+  --oa-surface: #ffffff;
+  --oa-text-primary: #2d3748;
+  --oa-text-secondary: #718096;
+  --oa-border: #e2e8f0;
+  --oa-success: #48bb78;
+  --oa-warning: #ed8936;
+  --oa-error: #f56565;
+}

@@ -4,18 +4,18 @@ import { AnimatePresence } from 'framer-motion';
 import Lottie from 'react-lottie-player';
 
 // Lazy load pages for better initial load performance
-const WelcomePage = React.lazy(() => import('./pages/WelcomePage'));
-const OrderModePage = React.lazy(() => import('./pages/OrderModePage'));
-const ChatPage = React.lazy(() => import('./pages/ChatPage'));
-const MenuPage = React.lazy(() => import('./pages/MenuPage'));
-const PaymentPage = React.lazy(() => import('./pages/PaymentPage'));
-const NotFoundPage = React.lazy(() => import('./pages/NotFoundPage'));
+const WelcomePage = React.lazy(() => import('./roles/customer/pages/WelcomePage'));
+const OrderModePage = React.lazy(() => import('./roles/customer/pages/OrderModePage'));
+const ChatPage = React.lazy(() => import('./roles/customer/pages/ChatPage'));
+const MenuPage = React.lazy(() => import('./roles/customer/pages/MenuPage'));
+const PaymentPage = React.lazy(() => import('./roles/customer/pages/PaymentPage'));
+const NotFoundPage = React.lazy(() => import('./roles/customer/pages/NotFoundPage'));
 
 // Context
-import { CartProvider } from './context/CartContext';
-import { ChatProvider } from './context/ChatContext';
-import { UserProvider } from './context/UserContext';
-import { AppShell } from './components/SharedComponents/AppShell';
+import { CartProvider } from './roles/customer/context/CartContext';
+import { ChatProvider } from './roles/customer/context/ChatContext';
+import { UserProvider } from './roles/customer/context/UserContext';
+import { AppShell } from './roles/customer/SharedComponents/AppShell';
 
 // Preload component
 const PageLoader = () => (
