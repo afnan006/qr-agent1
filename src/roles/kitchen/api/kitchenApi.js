@@ -28,7 +28,7 @@ const mockOrders = [
 ];
 
 const mockInventory = [
-  { id: 1, name: 'Ground Beef', quantity: 50, unit: 'kg', status: 'ok' },
+  { id: 1, name: 'Ground chicken', quantity: 50, unit: 'kg', status: 'ok' },
   { id: 2, name: 'Tomatoes', quantity: 10, unit: 'kg', status: 'low' },
   { id: 3, name: 'Lettuce', quantity: 20, unit: 'kg', status: 'ok' }
 ];
@@ -38,12 +38,12 @@ const mockRecipes = [
     id: 1,
     name: 'Classic Burger',
     ingredients: [
-      { name: 'Ground Beef', quantity: 0.2, unit: 'kg' },
+      { name: 'Ground chicken', quantity: 0.2, unit: 'kg' },
       { name: 'Lettuce', quantity: 0.05, unit: 'kg' },
       { name: 'Tomatoes', quantity: 0.05, unit: 'kg' }
     ],
     instructions: [
-      'Form beef into patties',
+      'Form chicken into patties',
       'Season with salt and pepper',
       'Grill for 4-5 minutes each side'
     ]

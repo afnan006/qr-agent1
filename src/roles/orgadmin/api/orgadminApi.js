@@ -5,7 +5,7 @@ const mockMenuItems = [
   {
     id: 1,
     name: 'Classic Burger',
-    description: 'Juicy beef patty with lettuce, tomato, and cheese',
+    description: 'Juicy patty with lettuce, tomato, and cheese',
     price: 12.99,
     category: 'Main Course',
     image: 'https://images.pexels.com/photos/1639557/pexels-photo-1639557.jpeg'
