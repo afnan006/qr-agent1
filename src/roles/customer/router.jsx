@@ -48,7 +48,6 @@ export default function CustomerRouter() {
 
                 {/* Menu Page */}
                 <Route path="/menu" element={<MenuPage />} />
-
                 
                 {/* Payment Page */}
                 <Route path="/payment" element={<PaymentPage />} />

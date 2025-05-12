@@ -69,7 +69,7 @@ const WelcomePage = () => {
   };
   
   const handleFinish = () => {
-    navigate('/order-mode');
+    navigate('customer/order-mode');
   };
   
   // Animation variants

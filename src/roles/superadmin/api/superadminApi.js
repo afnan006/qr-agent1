@@ -320,17 +320,47 @@
 //   },
 // };
 
-const BASE_URL = 'https://qr-agent.onrender.com/superadmin';
+const BASE_URL = 'https://qr-agent.onrender.com/superadmin'; // For login
+const API_URL = 'https://qr-agent.onrender.com/api/superadmin'; // For orgs and other CRUD
+const TOKEN_KEY = 'superadmin_token';
+const USER_KEY = 'superadmin_user';
+const SESSION_TYPE_KEY = 'superadmin_session_type';
+const TOKEN_EXPIRY_KEY = 'superadmin_token_expiry';
+
+// Helper: Check if token exists and is valid
+const isTokenValid = () => {
+  const token = localStorage.getItem(TOKEN_KEY);
+  if (!token) return false;
+  
+  try {
+    // If your token is a JWT, you could decode and check expiration
+    // For now, we'll just check if token exists
+    return true;
+  } catch (error) {
+    console.error('Token validation error:', error);
+    return false;
+  }
+};
 
 // Helper: Get headers with auth
-const getAuthHeaders = () => ({
-  'Content-Type': 'application/json',
-  'Authorization': `Bearer ${localStorage.getItem('superadmin_token') || ''}`
-});
+const getAuthHeaders = () => {
+  // Check if token exists
+  const token = localStorage.getItem(TOKEN_KEY);
+  
+  return {
+    'Content-Type': 'application/json',
+    ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+  };
+};
 
 export const superadminApi = {
+  // Check if user is authenticated
+  isAuthenticated: () => {
+    return isTokenValid();
+  },
+  
   // SuperAdmin Login
-  login: async (credentials) => {
+  login: async (credentials, rememberMe = false) => {
     const response = await fetch(`${BASE_URL}/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -338,26 +368,81 @@ export const superadminApi = {
       mode: 'cors',
     });
 
-    if (!response.ok) throw new Error((await response.json()).error || 'Login failed');
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Login failed');
+    }
     
     const data = await response.json();
     
-    // Save token for future API calls
-    if (data.token) {
-      localStorage.setItem('superadmin_token', data.token);
+    // Ensure consistent token storage
+    const token = data.superadmin_token || data.token;
+    
+    if (!token) {
+      throw new Error('No token received from server');
+    }
+    
+    // Save token and user data
+    localStorage.setItem(TOKEN_KEY, token);
+    
+    // If user data is available in the response, store it
+    if (data.user) {
+      localStorage.setItem(USER_KEY, JSON.stringify(data.user));
+    }
+    
+    // Store session type and expiry if rememberMe is passed
+    if (rememberMe) {
+      localStorage.setItem(SESSION_TYPE_KEY, 'persistent');
+      // Set expiry to 7 days
+      const expiryTime = Date.now() + (7 * 24 * 60 * 60 * 1000);
+      localStorage.setItem(TOKEN_EXPIRY_KEY, expiryTime.toString());
+    } else {
+      localStorage.setItem(SESSION_TYPE_KEY, 'temporary');
+      // Set expiry to 1 hour
+      const expiryTime = Date.now() + (60 * 60 * 1000);
+      localStorage.setItem(TOKEN_EXPIRY_KEY, expiryTime.toString());
     }
 
-    return data;
+    return {
+      ...data,
+      superadmin_token: token // Ensure consistent token property
+    };
+  },
+
+  // Validate existing token
+  validateToken: async () => {
+    if (!isTokenValid()) return false;
+    
+    try {
+      // Make a lightweight API call to verify the token is still accepted by the server
+      // For this implementation, we'll use the organizations endpoint as a test
+      // In a production environment, you should have a dedicated token validation endpoint
+      const response = await fetch(`${API_URL}/organizations`, {
+        method: 'GET',
+        headers: getAuthHeaders(),
+      });
+      
+      // If the token is accepted, the response will be ok (status 200-299)
+      // If not, the server will return 401 Unauthorized
+      return response.ok;
+    } catch (error) {
+      console.error('Token validation error:', error);
+      return false;
+    }
   },
 
   // SuperAdmin Logout (clear session)
   logout: () => {
-    localStorage.removeItem('superadmin_token');
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(USER_KEY);
+    
+    // Clear any other session data if needed
+    // sessionStorage.clear();
   },
 
   // Organization Endpoints
   createOrganization: async (orgData) => {
-    const response = await fetch(`${BASE_URL}/organizations`, {
+    const response = await fetch(`${API_URL}/organizations`, {
       method: 'POST',
       headers: getAuthHeaders(),
       body: JSON.stringify(orgData),
@@ -368,7 +453,7 @@ export const superadminApi = {
 
   listOrganizations: async (filters = {}) => {
     const queryParams = new URLSearchParams(filters).toString();
-    const response = await fetch(`${BASE_URL}/organizations${queryParams ? `?${queryParams}` : ''}`, {
+    const response = await fetch(`${API_URL}/organizations${queryParams ? `?${queryParams}` : ''}`, {
       method: 'GET',
       headers: getAuthHeaders(),
     });
@@ -377,7 +462,7 @@ export const superadminApi = {
   },
 
   getOrganization: async (orgId) => {
-    const response = await fetch(`${BASE_URL}/organizations/${orgId}`, {
+    const response = await fetch(`${API_URL}/organizations/${orgId}`, {
       method: 'GET',
       headers: getAuthHeaders(),
     });
@@ -386,7 +471,7 @@ export const superadminApi = {
   },
 
   updateOrganization: async (orgId, updates) => {
-    const response = await fetch(`${BASE_URL}/organizations/${orgId}`, {
+    const response = await fetch(`${API_URL}/organizations/${orgId}`, {
       method: 'PUT',
       headers: getAuthHeaders(),
       body: JSON.stringify(updates),
@@ -396,7 +481,7 @@ export const superadminApi = {
   },
 
   deactivateOrganization: async (orgId) => {
-    const response = await fetch(`${BASE_URL}/organizations/${orgId}`, {
+    const response = await fetch(`${API_URL}/organizations/${orgId}`, {
       method: 'DELETE',
       headers: getAuthHeaders(),
     });
@@ -406,7 +491,7 @@ export const superadminApi = {
 
   // Admin Endpoints
   createAdmin: async (adminData) => {
-    const response = await fetch(`${BASE_URL}/admins`, {
+    const response = await fetch(`${API_URL}/admins`, {
       method: 'POST',
       headers: getAuthHeaders(),
       body: JSON.stringify(adminData),
@@ -417,7 +502,7 @@ export const superadminApi = {
 
   listAdmins: async (filters = {}) => {
     const queryParams = new URLSearchParams(filters).toString();
-    const response = await fetch(`${BASE_URL}/admins${queryParams ? `?${queryParams}` : ''}`, {
+    const response = await fetch(`${API_URL}/admins${queryParams ? `?${queryParams}` : ''}`, {
       method: 'GET',
       headers: getAuthHeaders(),
     });
@@ -426,7 +511,7 @@ export const superadminApi = {
   },
 
   updateAdmin: async (adminId, updates) => {
-    const response = await fetch(`${BASE_URL}/admins/${adminId}`, {
+    const response = await fetch(`${API_URL}/admins/${adminId}`, {
       method: 'PUT',
       headers: getAuthHeaders(),
       body: JSON.stringify(updates),
@@ -436,7 +521,7 @@ export const superadminApi = {
   },
 
   deactivateAdmin: async (adminId) => {
-    const response = await fetch(`${BASE_URL}/admins/${adminId}`, {
+    const response = await fetch(`${API_URL}/admins/${adminId}`, {
       method: 'DELETE',
       headers: getAuthHeaders(),
     });

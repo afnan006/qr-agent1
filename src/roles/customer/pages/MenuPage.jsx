@@ -82,7 +82,7 @@ const MenuPage = () => {
       <div className="sticky top-0 z-10 bg-white shadow-md px-4 py-3 flex items-center justify-between">
         <div className="flex items-center">
           <button 
-            onClick={() => navigate('/chat')}
+            onClick={() => navigate('/customer/chat')}
             className="mr-3 p-1 rounded-full hover:bg-gray-100"
           >
             <ChevronLeft size={24} className="text-[#7A7F87]" />

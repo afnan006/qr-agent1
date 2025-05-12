@@ -32,7 +32,7 @@ export default function ChatNavbar() {
       <div className="flex items-center">
         {/* Hamburger Icon */}
         <motion.button
-          onClick={() => navigate('/menu')}
+          onClick={() => navigate('/customer/menu')}
           className="mr-3 p-1 rounded-full hover:bg-gray-100"
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.9 }}

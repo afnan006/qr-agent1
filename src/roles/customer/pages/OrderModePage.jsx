@@ -42,7 +42,7 @@ const OrderModePage = () => {
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            onClick={() => navigate('/chat')}
+            onClick={() => navigate('/customer/chat')}
             className="btn-primary w-full flex items-center justify-center gap-2"
           >
             <MessageSquare size={20} />
@@ -53,7 +53,7 @@ const OrderModePage = () => {
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            onClick={() => navigate('/menu')}
+            onClick={() => navigate('/customer/menu')}
             className="btn-secondary w-full flex items-center justify-center gap-2"
           >
             <ChefHat size={20} />

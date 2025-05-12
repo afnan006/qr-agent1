@@ -101,7 +101,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
-// import { superadminApi } from '../../api/superadminApi';
+import { superadminApi } from '../api/superadminApi';
 
 function CreateOrgModal({ isOpen, onClose }) {
   const [formData, setFormData] = useState({ name: '', admin_email: '', admin_password: '' });
