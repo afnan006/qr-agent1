@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useUser } from '../context/UserContext';
@@ -18,6 +18,12 @@ const WelcomePage = () => {
   const [partySize, setPartySize] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   
+  useEffect(() => {
+    if (!sessionStorage.getItem('table_id')) {
+      sessionStorage.setItem('table_id', 'table_default');
+    }
+  }, []);
+  
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
@@ -26,13 +32,12 @@ const WelcomePage = () => {
   const handleSubmitUserInfo = async (e) => {
     e.preventDefault();
     setIsLoading(true);
-    
     try {
-      // Send OTP (mock)
-      await sendOTP(formData.phone);
+      await sendOTP(formData.phone, formData.name); // Pass both phone and name
       setStep('verification');
     } catch (error) {
       console.error('Error sending OTP:', error);
+      alert('Failed to send OTP. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -40,11 +45,9 @@ const WelcomePage = () => {
   
   const handleVerifyOTP = async () => {
     setIsLoading(true);
-    
     try {
       const otpValue = otpVerify.getOtpValue();
       const result = await verifyOTP(otpValue, formData.phone);
-      
       if (result.success) {
         setStep('party-size');
       } else {
@@ -58,18 +61,27 @@ const WelcomePage = () => {
     }
   };
   
-  const handleSelectPartySize = (size) => {
+  const handleSelectPartySize = async (size) => {
     setPartySize(size);
-    
-    // Create the group
-    const tableId = sessionStorage.getItem('table_id') || 'table_default';
-    createGroup(tableId, formData.name, formData.phone, size);
-    
-    setStep('qr-code');
+    setIsLoading(true);
+    try {
+      const tableId = sessionStorage.getItem('table_id') || 'table_default';
+      const result = await createGroup(tableId, formData.name, formData.phone, size);
+      if (result && result.success) {
+        setStep('qr-code'); // Move to the next step
+      } else {
+        alert('Failed to create group. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error creating group:', error.message);
+      alert('An unexpected error occurred. Please try again later.');
+    } finally {
+      setIsLoading(false);
+    }
   };
   
   const handleFinish = () => {
-    navigate('customer/order-mode');
+    navigate('/customer/order-mode');
   };
   
   // Animation variants
@@ -204,38 +216,36 @@ const WelcomePage = () => {
             variants={itemVariants}
             className="text-center text-[#7A7F87] mb-8"
           >
-            We've sent a 4-digit code to {formData.phone}
+            We've sent a 6-digit code to {formData.phone}
           </motion.p>
           
-          <motion.div 
-            variants={containerVariants}
-            className="flex gap-3 justify-center mb-8"
-          >
-            {[0, 1, 2, 3].map((index) => (
-              <motion.input
-                key={index}
-                id={`otp-${index}`}
-                type="text"
-                maxLength={1}
-                value={otpVerify.otp[index]}
-                onChange={(e) => otpVerify.handleOtpChange(index, e.target.value)}
-                onKeyDown={(e) => otpVerify.handleKeyDown(index, e)}
-                className="w-14 h-16 text-center text-2xl font-mono border rounded-lg focus:border-[#4C4C9D] focus:ring focus:outline-none"
-                variants={itemVariants}
-                whileFocus={{ scale: 1.05, borderColor: '#4C4C9D' }}
-              />
-            ))}
-          </motion.div>
-          
-          {otpVerify.error && (
-            <motion.p
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="text-red-500 text-center mb-4"
-            >
-              {otpVerify.error}
-            </motion.p>
-          )}
+
+         <motion.div variants={containerVariants} className="flex gap-3 justify-center mb-8">
+  {[0, 1, 2, 3, 4, 5].map((index) => (
+    <motion.input
+      key={index}
+      id={`otp-${index}`}
+      type="text"
+      maxLength={1}
+      value={otpVerify.otp[index]}
+      onChange={(e) => otpVerify.handleOtpChange(index, e.target.value)}
+      onKeyDown={(e) => otpVerify.handleKeyDown(index, e)}
+      className="w-14 h-16 text-center text-2xl font-mono border rounded-lg focus:border-[#4C4C9D] focus:ring focus:outline-none"
+      variants={itemVariants}
+      whileFocus={{ scale: 1.05, borderColor: '#4C4C9D' }}
+    />
+  ))}
+</motion.div>
+{otpVerify.error && (
+  <motion.p
+    initial={{ opacity: 0, y: -10 }}
+    animate={{ opacity: 1, y: 0 }}
+    className="text-red-500 text-center mb-4"
+  >
+    {otpVerify.error}
+  </motion.p>
+)}
+
           
           <motion.div variants={containerVariants} className="flex flex-col gap-3">
             <motion.button
