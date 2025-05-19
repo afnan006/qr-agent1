@@ -65,12 +65,17 @@ const WelcomePage = () => {
     setPartySize(size);
     setIsLoading(true);
     try {
-      const tableId = sessionStorage.getItem('table_id') || 'table_default';
-      const result = await createGroup(tableId, formData.name, formData.phone, size);
-      if (result && result.success) {
-        setStep('qr-code'); // Move to the next step
+      if (size === 1) {
+        // For single customer, go straight to order mode
+        navigate('/customer/order-mode');
       } else {
-        alert('Failed to create group. Please try again.');
+        const tableId = sessionStorage.getItem('table_id') || 'table_default';
+        const result = await createGroup(tableId, formData.name, formData.phone, size);
+        if (result && result.success) {
+          setStep('qr-code'); // Show QR for group
+        } else {
+          alert('Failed to create group. Please try again.');
+        }
       }
     } catch (error) {
       console.error('Error creating group:', error.message);
@@ -290,6 +295,20 @@ const WelcomePage = () => {
             variants={containerVariants}
             className="grid grid-cols-3 gap-4 mb-6"
           >
+            <motion.button
+              key="just-me"
+              onClick={() => handleSelectPartySize(1)}
+              className={`py-4 px-2 rounded-full text-lg font-medium transition-all ${
+                partySize === 1
+                  ? 'bg-[#4C4C9D] text-white'
+                  : 'bg-[#EEF1F4] text-[#7A7F87] hover:bg-gray-200'
+              }`}
+              variants={itemVariants}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              Just Me
+            </motion.button>
             {[2, 3, 4, 5, 6, '6+'].map((size) => (
               <motion.button
                 key={size}
