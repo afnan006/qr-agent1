@@ -49,6 +49,10 @@ const WelcomePage = () => {
       const otpValue = otpVerify.getOtpValue();
       const result = await verifyOTP(otpValue, formData.phone);
       if (result.success) {
+        // Store JWT if present
+        if (result.token) {
+          localStorage.setItem('jwt', result.token);
+        }
         setStep('party-size');
       } else {
         otpVerify.setError(result.error || 'Verification failed');

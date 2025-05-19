@@ -1,152 +1,1166 @@
-// import React, { useState } from 'react';
-// import { motion } from 'framer-motion';
-// import { useNavigate } from 'react-router-dom';
-// import { ChevronLeft, ShoppingCart } from 'lucide-react';
-// import MenuCarousel from '../components/MenuCards/MenuCarousel';
-// import CartSlideOver from '../components/PaymentPanel/CartSlideOver';
-// import QuizOverlay from '../components/EngagementQuiz/QuizOverlay';
+// // // // import React, { useEffect, useState, useCallback } from 'react';
+// // // // import { motion, AnimatePresence } from 'framer-motion';
+// // // // import { ChevronLeft, ShoppingCart, X, Filter, Plus, Minus } from 'lucide-react';
+// // // // import MenuCarousel from '../components/MenuCards/MenuCarousel';
+// // // // import { customerApi } from '../api/customerApi';
+// // // // import { useCart } from '../context/CartContext';
+
+// // // // const MenuPage = () => {
+// // // //   const [menuItems, setMenuItems] = useState([]);
+// // // //   const [filteredItems, setFilteredItems] = useState([]);
+// // // //   const [loading, setLoading] = useState(true);
+// // // //   const [error, setError] = useState(null);
+// // // //   const [activeFilter, setActiveFilter] = useState('all');
+// // // //   const [showFilters, setShowFilters] = useState(false);
+// // // //   const { cart, addToCart, removeFromCart } = useCart();
+
+// // // //   const filters = [
+// // // //     { id: 'all', name: 'All Items' },
+// // // //     { id: 'veg', name: 'Vegetarian' },
+// // // //     { id: 'non-veg', name: 'Non-Vegetarian' },
+// // // //     { id: 'vegan', name: 'Vegan' },
+// // // //     { id: 'gluten-free', name: 'Gluten Free' },
+// // // //   ];
+
+// // // //   const applyFilter = useCallback((filter) => {
+// // // //     setActiveFilter(filter);
+// // // //     if (filter === 'all') {
+// // // //       setFilteredItems(menuItems);
+// // // //     } else {
+// // // //       setFilteredItems(menuItems.filter(item => 
+// // // //         item.dietary_tag?.toLowerCase().includes(filter) || 
+// // // //         item.category?.toLowerCase().includes(filter)
+// // // //       ));
+// // // //     }
+// // // //   }, [menuItems]);
+
+// // // //   useEffect(() => {
+// // // //     const fetchMenu = async () => {
+// // // //       try {
+// // // //         setLoading(true);
+// // // //         const response = await customerApi.getMenu();
+// // // //         if (Array.isArray(response)) {
+// // // //           const availableItems = response.filter(item => item.is_available);
+// // // //           setMenuItems(availableItems);
+// // // //           setFilteredItems(availableItems);
+// // // //         } else {
+// // // //           throw new Error('Invalid menu format');
+// // // //         }
+// // // //       } catch (err) {
+// // // //         setError(err.message || 'Failed to load menu.');
+// // // //       } finally {
+// // // //         setLoading(false);
+// // // //       }
+// // // //     };
+// // // //     fetchMenu();
+// // // //   }, []);
+
+// // // //   const handleAddToCart = (item) => {
+// // // //     addToCart(item);
+// // // //   };
+
+// // // //   const handleRemoveFromCart = (itemId) => {
+// // // //     removeFromCart(itemId);
+// // // //   };
+
+// // // //   if (loading) return (
+// // // //     <div className="flex items-center justify-center h-screen bg-gradient-to-b from-purple-50 to-white">
+// // // //       <motion.div
+// // // //         animate={{ rotate: 360 }}
+// // // //         transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+// // // //         className="w-16 h-16 border-4 border-purple-300 border-t-purple-600 rounded-full"
+// // // //       />
+// // // //     </div>
+// // // //   );
+
+// // // //   if (error) return (
+// // // //     <div className="flex items-center justify-center h-screen bg-gradient-to-b from-purple-50 to-white">
+// // // //       <motion.div 
+// // // //         initial={{ scale: 0.8 }} 
+// // // //         animate={{ scale: 1 }}
+// // // //         className="p-6 bg-white rounded-xl shadow-lg text-center max-w-md"
+// // // //       >
+// // // //         <h2 className="text-xl font-bold text-purple-800 mb-2">Error Loading Menu</h2>
+// // // //         <p className="text-gray-600 mb-4">{error}</p>
+// // // //         <button 
+// // // //           onClick={() => window.location.reload()}
+// // // //           className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+// // // //         >
+// // // //           Try Again
+// // // //         </button>
+// // // //       </motion.div>
+// // // //     </div>
+// // // //   );
+
+// // // //   if (!menuItems.length) return (
+// // // //     <div className="flex items-center justify-center h-screen bg-gradient-to-b from-purple-50 to-white">
+// // // //       <motion.div 
+// // // //         initial={{ opacity: 0 }} 
+// // // //         animate={{ opacity: 1 }}
+// // // //         className="p-6 bg-white rounded-xl shadow-lg text-center max-w-md"
+// // // //       >
+// // // //         <h2 className="text-xl font-bold text-purple-800 mb-2">Menu Unavailable</h2>
+// // // //         <p className="text-gray-600">Currently no menu items are available. Please check back later.</p>
+// // // //       </motion.div>
+// // // //     </div>
+// // // //   );
+
+// // // //   return (
+// // // //     <motion.div 
+// // // //       initial={{ opacity: 0 }} 
+// // // //       animate={{ opacity: 1 }} 
+// // // //       exit={{ opacity: 0 }}
+// // // //       className="min-h-screen bg-gradient-to-b from-purple-50 to-white"
+// // // //     >
+// // // //       {/* Header */}
+// // // //       <div className="sticky top-0 z-10 bg-white bg-opacity-90 backdrop-blur-sm shadow-sm p-4 flex justify-between items-center">
+// // // //         <motion.button
+// // // //           whileTap={{ scale: 0.9 }}
+// // // //           onClick={() => window.history.back()}
+// // // //           className="p-2 rounded-full hover:bg-purple-50 transition-colors"
+// // // //         >
+// // // //           <ChevronLeft className="text-purple-700" />
+// // // //         </motion.button>
+        
+// // // //         <motion.h1 
+// // // //           initial={{ y: -20 }}
+// // // //           animate={{ y: 0 }}
+// // // //           className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-purple-400 bg-clip-text text-transparent"
+// // // //         >
+// // // //           Premium Menu
+// // // //         </motion.h1>
+        
+// // // //         <div className="relative">
+// // // //           <motion.button
+// // // //             whileTap={{ scale: 0.9 }}
+// // // //             className="p-2 rounded-full hover:bg-purple-50 transition-colors relative"
+// // // //             onClick={() => {}}
+// // // //           >
+// // // //             <ShoppingCart className="text-purple-700" />
+// // // //             {cart.length > 0 && (
+// // // //               <motion.span 
+// // // //                 initial={{ scale: 0 }}
+// // // //                 animate={{ scale: 1 }}
+// // // //                 className="absolute -top-1 -right-1 bg-purple-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center"
+// // // //               >
+// // // //                 {cart.reduce((total, item) => total + item.quantity, 0)}
+// // // //               </motion.span>
+// // // //             )}
+// // // //           </motion.button>
+// // // //         </div>
+// // // //       </div>
+
+// // // //       {/* Filter Button */}
+// // // //       <div className="px-4 mt-2">
+// // // //         <motion.button
+// // // //           whileHover={{ scale: 1.02 }}
+// // // //           whileTap={{ scale: 0.98 }}
+// // // //           onClick={() => setShowFilters(!showFilters)}
+// // // //           className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-full shadow-md hover:bg-purple-700 transition-colors"
+// // // //         >
+// // // //           <Filter size={18} />
+// // // //           <span>Filters</span>
+// // // //         </motion.button>
+// // // //       </div>
+
+// // // //       {/* Filter Panel */}
+// // // //       <AnimatePresence>
+// // // //         {showFilters && (
+// // // //           <motion.div
+// // // //             initial={{ opacity: 0, height: 0 }}
+// // // //             animate={{ opacity: 1, height: 'auto' }}
+// // // //             exit={{ opacity: 0, height: 0 }}
+// // // //             transition={{ duration: 0.3 }}
+// // // //             className="overflow-hidden px-4"
+// // // //           >
+// // // //             <div className="flex flex-wrap gap-2 py-4">
+// // // //               {filters.map(filter => (
+// // // //                 <motion.button
+// // // //                   key={filter.id}
+// // // //                   whileHover={{ scale: 1.05 }}
+// // // //                   whileTap={{ scale: 0.95 }}
+// // // //                   onClick={() => applyFilter(filter.id)}
+// // // //                   className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+// // // //                     activeFilter === filter.id
+// // // //                       ? 'bg-purple-600 text-white shadow-md'
+// // // //                       : 'bg-white text-purple-700 border border-purple-200 hover:bg-purple-50'
+// // // //                   }`}
+// // // //                 >
+// // // //                   {filter.name}
+// // // //                 </motion.button>
+// // // //               ))}
+// // // //             </div>
+// // // //           </motion.div>
+// // // //         )}
+// // // //       </AnimatePresence>
+
+// // // //       {/* Menu Sections */}
+// // // //       <div className="pb-20">
+// // // //         <MenuCarousel 
+// // // //           items={filteredItems} 
+// // // //           title="Our Premium Selection" 
+// // // //           onAddToCart={handleAddToCart}
+// // // //           onRemoveFromCart={handleRemoveFromCart}
+// // // //           cartItems={cart}
+// // // //         />
+// // // //       </div>
+// // // //     </motion.div>
+// // // //   );
+// // // // };
+
+// // // // export default MenuPage;
+
+// // // import React, { useEffect, useState, useCallback } from 'react';
+// // // import { motion, AnimatePresence } from 'framer-motion';
+// // // import { ChevronLeft, ShoppingCart, X, Filter, Plus, Minus, Search } from 'lucide-react';
+// // // import MenuCategorySection from '../components/MenuCards/MenuCategorySection';
+// // // import { customerApi } from '../api/customerApi';
+// // // import { useCart } from '../context/CartContext';
+
+// // // const MenuPage = () => {
+// // //   const [menuItems, setMenuItems] = useState([]);
+// // //   const [loading, setLoading] = useState(true);
+// // //   const [error, setError] = useState(null);
+// // //   const [activeFilter, setActiveFilter] = useState('all');
+// // //   const [showFilters, setShowFilters] = useState(false);
+// // //   const [searchQuery, setSearchQuery] = useState('');
+// // //   const { cart, addToCart, removeFromCart } = useCart();
+
+// // //   const filters = [
+// // //     { id: 'all', name: 'All Items' },
+// // //     { id: 'veg', name: 'Vegetarian' },
+// // //     { id: 'non-veg', name: 'Non-Vegetarian' },
+// // //     { id: 'vegan', name: 'Vegan' },
+// // //     { id: 'gluten-free', name: 'Gluten Free' },
+// // //   ];
+
+// // //   // Group items by category
+// // //   const groupByCategory = useCallback((items) => {
+// // //     return items.reduce((acc, item) => {
+// // //       const category = item.category || 'Uncategorized';
+// // //       if (!acc[category]) {
+// // //         acc[category] = [];
+// // //       }
+// // //       acc[category].push(item);
+// // //       return acc;
+// // //     }, {});
+// // //   }, []);
+
+// // //   // Apply filters and search
+// // //   const getFilteredItems = useCallback(() => {
+// // //     let filtered = [...menuItems];
+    
+// // //     // Apply dietary filter
+// // //     if (activeFilter !== 'all') {
+// // //       filtered = filtered.filter(item => 
+// // //         item.dietary_tag?.toLowerCase().includes(activeFilter)
+// // //       );
+// // //     }
+    
+// // //     // Apply search
+// // //     if (searchQuery) {
+// // //       const query = searchQuery.toLowerCase();
+// // //       filtered = filtered.filter(item => 
+// // //         item.name.toLowerCase().includes(query) || 
+// // //         item.description.toLowerCase().includes(query) ||
+// // //         item.category.toLowerCase().includes(query)
+// // //       );
+// // //     }
+    
+// // //     return filtered;
+// // //   }, [menuItems, activeFilter, searchQuery]);
+
+// // //   // Get categorized items
+// // //   const categorizedItems = groupByCategory(getFilteredItems());
+
+// // //   useEffect(() => {
+// // //     const fetchMenu = async () => {
+// // //       try {
+// // //         setLoading(true);
+// // //         const response = await customerApi.getMenu();
+// // //         if (Array.isArray(response)) {
+// // //           const availableItems = response.filter(item => item.is_available);
+// // //           setMenuItems(availableItems);
+// // //         } else {
+// // //           throw new Error('Invalid menu format');
+// // //         }
+// // //       } catch (err) {
+// // //         setError(err.message || 'Failed to load menu.');
+// // //       } finally {
+// // //         setLoading(false);
+// // //       }
+// // //     };
+// // //     fetchMenu();
+// // //   }, []);
+
+// // //   const handleAddToCart = (item) => {
+// // //     addToCart(item);
+// // //   };
+
+// // //   const handleRemoveFromCart = (itemId) => {
+// // //     removeFromCart(itemId);
+// // //   };
+
+// // //   const getCartQuantity = (itemId) => {
+// // //     const itemInCart = cart.find(item => item.id === itemId);
+// // //     return itemInCart ? itemInCart.quantity : 0;
+// // //   };
+
+// // //   if (loading) return (
+// // //     <div className="flex items-center justify-center h-screen bg-gradient-to-b from-purple-50 to-white">
+// // //       <motion.div
+// // //         animate={{ rotate: 360 }}
+// // //         transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+// // //         className="w-16 h-16 border-4 border-purple-300 border-t-purple-600 rounded-full"
+// // //       />
+// // //     </div>
+// // //   );
+
+// // //   if (error) return (
+// // //     <div className="flex items-center justify-center h-screen bg-gradient-to-b from-purple-50 to-white">
+// // //       <motion.div 
+// // //         initial={{ scale: 0.8 }} 
+// // //         animate={{ scale: 1 }}
+// // //         className="p-6 bg-white rounded-xl shadow-lg text-center max-w-md"
+// // //       >
+// // //         <h2 className="text-xl font-bold text-purple-800 mb-2">Error Loading Menu</h2>
+// // //         <p className="text-gray-600 mb-4">{error}</p>
+// // //         <button 
+// // //           onClick={() => window.location.reload()}
+// // //           className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+// // //         >
+// // //           Try Again
+// // //         </button>
+// // //       </motion.div>
+// // //     </div>
+// // //   );
+
+// // //   if (!menuItems.length) return (
+// // //     <div className="flex items-center justify-center h-screen bg-gradient-to-b from-purple-50 to-white">
+// // //       <motion.div 
+// // //         initial={{ opacity: 0 }} 
+// // //         animate={{ opacity: 1 }}
+// // //         className="p-6 bg-white rounded-xl shadow-lg text-center max-w-md"
+// // //       >
+// // //         <h2 className="text-xl font-bold text-purple-800 mb-2">Menu Unavailable</h2>
+// // //         <p className="text-gray-600">Currently no menu items are available. Please check back later.</p>
+// // //       </motion.div>
+// // //     </div>
+// // //   );
+
+// // //   return (
+// // //     <motion.div 
+// // //       initial={{ opacity: 0 }} 
+// // //       animate={{ opacity: 1 }} 
+// // //       exit={{ opacity: 0 }}
+// // //       className="min-h-screen bg-gradient-to-b from-purple-50 to-white"
+// // //     >
+// // //       {/* Header */}
+// // //       <div className="sticky top-0 z-20 bg-white bg-opacity-90 backdrop-blur-sm shadow-sm p-4 flex justify-between items-center">
+// // //         <motion.button
+// // //           whileTap={{ scale: 0.9 }}
+// // //           onClick={() => window.history.back()}
+// // //           className="p-2 rounded-full hover:bg-purple-50 transition-colors"
+// // //         >
+// // //           <ChevronLeft className="text-purple-700" />
+// // //         </motion.button>
+        
+// // //         <motion.h1 
+// // //           initial={{ y: -20 }}
+// // //           animate={{ y: 0 }}
+// // //           className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-purple-400 bg-clip-text text-transparent"
+// // //         >
+// // //           Premium Menu
+// // //         </motion.h1>
+        
+// // //         <div className="relative">
+// // //           <motion.button
+// // //             whileTap={{ scale: 0.9 }}
+// // //             className="p-2 rounded-full hover:bg-purple-50 transition-colors relative"
+// // //             onClick={() => {}}
+// // //           >
+// // //             <ShoppingCart className="text-purple-700" />
+// // //             {cart.length > 0 && (
+// // //               <motion.span 
+// // //                 initial={{ scale: 0 }}
+// // //                 animate={{ scale: 1 }}
+// // //                 className="absolute -top-1 -right-1 bg-purple-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center"
+// // //               >
+// // //                 {cart.reduce((total, item) => total + item.quantity, 0)}
+// // //               </motion.span>
+// // //             )}
+// // //           </motion.button>
+// // //         </div>
+// // //       </div>
+
+// // //       {/* Search Bar */}
+// // //       <div className="px-4 mt-4">
+// // //         <motion.div 
+// // //           initial={{ y: -20, opacity: 0 }}
+// // //           animate={{ y: 0, opacity: 1 }}
+// // //           className="relative"
+// // //         >
+// // //           <input
+// // //             type="text"
+// // //             placeholder="Search menu items..."
+// // //             value={searchQuery}
+// // //             onChange={(e) => setSearchQuery(e.target.value)}
+// // //             className="w-full px-4 py-3 pl-10 bg-white rounded-lg border border-purple-100 focus:outline-none focus:ring-2 focus:ring-purple-300 focus:border-transparent shadow-sm"
+// // //           />
+// // //           <Search className="absolute left-3 top-3.5 text-purple-400" size={18} />
+// // //           {searchQuery && (
+// // //             <button
+// // //               onClick={() => setSearchQuery('')}
+// // //               className="absolute right-3 top-3.5 text-purple-400 hover:text-purple-600"
+// // //             >
+// // //               <X size={18} />
+// // //             </button>
+// // //           )}
+// // //         </motion.div>
+// // //       </div>
+
+// // //       {/* Filter Button */}
+// // //       <div className="px-4 mt-4">
+// // //         <motion.button
+// // //           whileHover={{ scale: 1.02 }}
+// // //           whileTap={{ scale: 0.98 }}
+// // //           onClick={() => setShowFilters(!showFilters)}
+// // //           className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-full shadow-md hover:bg-purple-700 transition-colors"
+// // //         >
+// // //           <Filter size={18} />
+// // //           <span>Filters</span>
+// // //         </motion.button>
+// // //       </div>
+
+// // //       {/* Filter Panel */}
+// // //       <AnimatePresence>
+// // //         {showFilters && (
+// // //           <motion.div
+// // //             initial={{ opacity: 0, height: 0 }}
+// // //             animate={{ opacity: 1, height: 'auto' }}
+// // //             exit={{ opacity: 0, height: 0 }}
+// // //             transition={{ duration: 0.3 }}
+// // //             className="overflow-hidden px-4"
+// // //           >
+// // //             <div className="flex flex-wrap gap-2 py-4">
+// // //               {filters.map(filter => (
+// // //                 <motion.button
+// // //                   key={filter.id}
+// // //                   whileHover={{ scale: 1.05 }}
+// // //                   whileTap={{ scale: 0.95 }}
+// // //                   onClick={() => setActiveFilter(filter.id)}
+// // //                   className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+// // //                     activeFilter === filter.id
+// // //                       ? 'bg-purple-600 text-white shadow-md'
+// // //                       : 'bg-white text-purple-700 border border-purple-200 hover:bg-purple-50'
+// // //                   }`}
+// // //                 >
+// // //                   {filter.name}
+// // //                 </motion.button>
+// // //               ))}
+// // //             </div>
+// // //           </motion.div>
+// // //         )}
+// // //       </AnimatePresence>
+
+// // //       {/* Menu Sections */}
+// // //       <div className="pb-24 px-4">
+// // //         {Object.keys(categorizedItems).length > 0 ? (
+// // //           Object.entries(categorizedItems).map(([category, items]) => (
+// // //             <MenuCategorySection
+// // //               key={category}
+// // //               category={category}
+// // //               items={items}
+// // //               onAddToCart={handleAddToCart}
+// // //               onRemoveFromCart={handleRemoveFromCart}
+// // //               getCartQuantity={getCartQuantity}
+// // //             />
+// // //           ))
+// // //         ) : (
+// // //           <motion.div 
+// // //             initial={{ opacity: 0 }}
+// // //             animate={{ opacity: 1 }}
+// // //             className="text-center py-12"
+// // //           >
+// // //             <div className="text-purple-400 mb-4">
+// // //               <Search size={48} className="mx-auto" />
+// // //             </div>
+// // //             <h3 className="text-xl font-semibold text-purple-800 mb-2">No items found</h3>
+// // //             <p className="text-gray-600">Try adjusting your search or filter criteria</p>
+// // //             <button
+// // //               onClick={() => {
+// // //                 setSearchQuery('');
+// // //                 setActiveFilter('all');
+// // //               }}
+// // //               className="mt-4 px-4 py-2 bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 transition-colors"
+// // //             >
+// // //               Clear filters
+// // //             </button>
+// // //           </motion.div>
+// // //         )}
+// // //       </div>
+// // //     </motion.div>
+// // //   );
+// // // };
+
+// // // export default MenuPage;
+
+// // import React, { useEffect, useState, useCallback } from 'react';
+// // import { motion, AnimatePresence } from 'framer-motion';
+// // import { ChevronLeft, ShoppingCart, X, Filter, Plus, Minus, Search } from 'lucide-react';
+// // import MenuCarousel from '../components/MenuCards/MenuCarousel'; // Import the MenuCarousel component
+// // import { customerApi } from '../api/customerApi';
+// // import { useCart } from '../context/CartContext';
+
+// // const MenuPage = () => {
+// //   const [menuItems, setMenuItems] = useState([]);
+// //   const [loading, setLoading] = useState(true);
+// //   const [error, setError] = useState(null);
+// //   const [activeFilter, setActiveFilter] = useState('all');
+// //   const [showFilters, setShowFilters] = useState(false);
+// //   const [searchQuery, setSearchQuery] = useState('');
+// //   const { cart, addToCart, removeFromCart, toggleCart } = useCart(); // Use toggleCart from context
+
+// //   const filters = [
+// //     { id: 'all', name: 'All Items' },
+// //     { id: 'veg', name: 'Vegetarian' },
+// //     { id: 'non-veg', name: 'Non-Vegetarian' },
+// //     { id: 'vegan', name: 'Vegan' },
+// //     { id: 'gluten-free', name: 'Gluten Free' },
+// //   ];
+
+// //   // Group items by category
+// //   const groupByCategory = useCallback((items) => {
+// //     return items.reduce((acc, item) => {
+// //       const category = item.category || 'Uncategorized';
+// //       if (!acc[category]) {
+// //         acc[category] = [];
+// //       }
+// //       acc[category].push(item);
+// //       return acc;
+// //     }, {});
+// //   }, []);
+
+// //   // Apply filters and search
+// //   const getFilteredItems = useCallback(() => {
+// //     let filtered = [...menuItems];
+// //     // Apply dietary filter
+// //     if (activeFilter !== 'all') {
+// //       filtered = filtered.filter(item => 
+// //         item.dietary_tag?.toLowerCase().includes(activeFilter)
+// //       );
+// //     }
+// //     // Apply search
+// //     if (searchQuery) {
+// //       const query = searchQuery.toLowerCase();
+// //       filtered = filtered.filter(item => 
+// //         item.name.toLowerCase().includes(query) || 
+// //         item.description.toLowerCase().includes(query) ||
+// //         item.category.toLowerCase().includes(query)
+// //       );
+// //     }
+// //     return filtered;
+// //   }, [menuItems, activeFilter, searchQuery]);
+
+// //   // Get categorized items
+// //   const categorizedItems = groupByCategory(getFilteredItems());
+
+// //   useEffect(() => {
+// //     const fetchMenu = async () => {
+// //       try {
+// //         setLoading(true);
+// //         const response = await customerApi.getMenu();
+// //         if (Array.isArray(response)) {
+// //           const availableItems = response.filter(item => item.is_available);
+// //           setMenuItems(availableItems);
+// //         } else {
+// //           throw new Error('Invalid menu format');
+// //         }
+// //       } catch (err) {
+// //         setError(err.message || 'Failed to load menu.');
+// //       } finally {
+// //         setLoading(false);
+// //       }
+// //     };
+// //     fetchMenu();
+// //   }, []);
+
+// //   const handleAddToCart = (item) => {
+// //     addToCart(item);
+// //   };
+
+// //   const handleRemoveFromCart = (itemId) => {
+// //     removeFromCart(itemId);
+// //   };
+
+// //   const getCartQuantity = (itemId) => {
+// //     const itemInCart = cart.find(item => item.id === itemId);
+// //     return itemInCart ? itemInCart.quantity : 0;
+// //   };
+
+// //   if (loading) return (
+// //     <div className="flex items-center justify-center h-screen bg-gradient-to-b from-purple-50 to-white">
+// //       <motion.div
+// //         animate={{ rotate: 360 }}
+// //         transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+// //         className="w-16 h-16 border-4 border-purple-300 border-t-purple-600 rounded-full"
+// //       />
+// //     </div>
+// //   );
+
+// //   if (error) return (
+// //     <div className="flex items-center justify-center h-screen bg-gradient-to-b from-purple-50 to-white">
+// //       <motion.div 
+// //         initial={{ scale: 0.8 }} 
+// //         animate={{ scale: 1 }}
+// //         className="p-6 bg-white rounded-xl shadow-lg text-center max-w-md"
+// //       >
+// //         <h2 className="text-xl font-bold text-purple-800 mb-2">Error Loading Menu</h2>
+// //         <p className="text-gray-600 mb-4">{error}</p>
+// //         <button 
+// //           onClick={() => window.location.reload()}
+// //           className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+// //         >
+// //           Try Again
+// //         </button>
+// //       </motion.div>
+// //     </div>
+// //   );
+
+// //   if (!menuItems.length) return (
+// //     <div className="flex items-center justify-center h-screen bg-gradient-to-b from-purple-50 to-white">
+// //       <motion.div 
+// //         initial={{ opacity: 0 }} 
+// //         animate={{ opacity: 1 }}
+// //         className="p-6 bg-white rounded-xl shadow-lg text-center max-w-md"
+// //       >
+// //         <h2 className="text-xl font-bold text-purple-800 mb-2">Menu Unavailable</h2>
+// //         <p className="text-gray-600">Currently no menu items are available. Please check back later.</p>
+// //       </motion.div>
+// //     </div>
+// //   );
+
+// //   return (
+// //     <motion.div 
+// //       initial={{ opacity: 0 }} 
+// //       animate={{ opacity: 1 }} 
+// //       exit={{ opacity: 0 }}
+// //       className="min-h-screen bg-gradient-to-b from-purple-50 to-white"
+// //     >
+// //       {/* Header */}
+// //       <div className="sticky top-0 z-20 bg-white bg-opacity-90 backdrop-blur-sm shadow-sm p-4 flex justify-between items-center">
+// //         <motion.button
+// //           whileTap={{ scale: 0.9 }}
+// //           onClick={() => window.history.back()}
+// //           className="p-2 rounded-full hover:bg-purple-50 transition-colors"
+// //         >
+// //           <ChevronLeft className="text-purple-700" />
+// //         </motion.button>
+// //         <motion.h1 
+// //           initial={{ y: -20 }}
+// //           animate={{ y: 0 }}
+// //           className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-purple-400 bg-clip-text text-transparent"
+// //         >
+// //           Premium Menu
+// //         </motion.h1>
+// //         <div className="relative">
+// //           <motion.button
+// //             whileTap={{ scale: 0.9 }}
+// //             className="p-2 rounded-full hover:bg-purple-50 transition-colors relative"
+// //             onClick={toggleCart} 
+// //           >
+// //             {/* Add toggleCart function here */}
+// //             <ShoppingCart className="text-purple-700" />
+// //             {cart.length > 0 && (
+// //               <motion.span 
+// //                 initial={{ scale: 0 }}
+// //                 animate={{ scale: 1 }}
+// //                 className="absolute -top-1 -right-1 bg-purple-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center"
+// //               >
+// //                 {cart.reduce((total, item) => total + item.quantity, 0)}
+// //               </motion.span>
+// //             )}
+// //           </motion.button>
+// //         </div>
+// //       </div>
+
+// //       {/* Search Bar */}
+// //       <div className="px-4 mt-4">
+// //         <motion.div 
+// //           initial={{ y: -20, opacity: 0 }}
+// //           animate={{ y: 0, opacity: 1 }}
+// //           className="relative"
+// //         >
+// //           <input
+// //             type="text"
+// //             placeholder="Search menu items..."
+// //             value={searchQuery}
+// //             onChange={(e) => setSearchQuery(e.target.value)}
+// //             className="w-full px-4 py-3 pl-10 bg-white rounded-lg border border-purple-100 focus:outline-none focus:ring-2 focus:ring-purple-300 focus:border-transparent shadow-sm"
+// //           />
+// //           <Search className="absolute left-3 top-3.5 text-purple-400" size={18} />
+// //           {searchQuery && (
+// //             <button
+// //               onClick={() => setSearchQuery('')}
+// //               className="absolute right-3 top-3.5 text-purple-400 hover:text-purple-600"
+// //             >
+// //               <X size={18} />
+// //             </button>
+// //           )}
+// //         </motion.div>
+// //       </div>
+
+// //       {/* Filter Button */}
+// //       <div className="px-4 mt-4">
+// //         <motion.button
+// //           whileHover={{ scale: 1.02 }}
+// //           whileTap={{ scale: 0.98 }}
+// //           onClick={() => setShowFilters(!showFilters)}
+// //           className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-full shadow-md hover:bg-purple-700 transition-colors"
+// //         >
+// //           <Filter size={18} />
+// //           <span>Filters</span>
+// //         </motion.button>
+// //       </div>
+
+// //       {/* Filter Panel */}
+// //       <AnimatePresence>
+// //         {showFilters && (
+// //           <motion.div
+// //             initial={{ opacity: 0, height: 0 }}
+// //             animate={{ opacity: 1, height: 'auto' }}
+// //             exit={{ opacity: 0, height: 0 }}
+// //             transition={{ duration: 0.3 }}
+// //             className="overflow-hidden px-4"
+// //           >
+// //             <div className="flex flex-wrap gap-2 py-4">
+// //               {filters.map(filter => (
+// //                 <motion.button
+// //                   key={filter.id}
+// //                   whileHover={{ scale: 1.05 }}
+// //                   whileTap={{ scale: 0.95 }}
+// //                   onClick={() => setActiveFilter(filter.id)}
+// //                   className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+// //                     activeFilter === filter.id
+// //                       ? 'bg-purple-600 text-white shadow-md'
+// //                       : 'bg-white text-purple-700 border border-purple-200 hover:bg-purple-50'
+// //                   }`}
+// //                 >
+// //                   {filter.name}
+// //                 </motion.button>
+// //               ))}
+// //             </div>
+// //           </motion.div>
+// //         )}
+// //       </AnimatePresence>
+
+// //       {/* Menu Sections as Carousels */}
+// //       <div className="pb-24 px-4">
+// //         {Object.keys(categorizedItems).length > 0 ? (
+// //           Object.entries(categorizedItems).map(([category, items]) => (
+// //             <MenuCarousel
+// //               key={category}
+// //               title={category} // Title of the category
+// //               items={items}
+// //               onAddToCart={handleAddToCart}
+// //               onRemoveFromCart={handleRemoveFromCart}
+// //               cartItems={cart} // Pass the cart items
+// //             />
+// //           ))
+// //         ) : (
+// //           <motion.div 
+// //             initial={{ opacity: 0 }}
+// //             animate={{ opacity: 1 }}
+// //             className="text-center py-12"
+// //           >
+// //             <div className="text-purple-400 mb-4">
+// //               <Search size={48} className="mx-auto" />
+// //             </div>
+// //             <h3 className="text-xl font-semibold text-purple-800 mb-2">No items found</h3>
+// //             <p className="text-gray-600">Try adjusting your search or filter criteria</p>
+// //             <button
+// //               onClick={() => {
+// //                 setSearchQuery('');
+// //                 setActiveFilter('all');
+// //               }}
+// //               className="mt-4 px-4 py-2 bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 transition-colors"
+// //             >
+// //               Clear filters
+// //             </button>
+// //           </motion.div>
+// //         )}
+// //       </div>
+// //     </motion.div>
+// //   );
+// // };
+
+// // export default MenuPage;
+
+
+
+// import React, { useEffect, useState, useCallback } from 'react';
+// import { motion, AnimatePresence } from 'framer-motion';
+// import { ChevronLeft, ShoppingCart, X, Filter, Search } from 'lucide-react';
+// import MenuCarousel from '../components/MenuCards/MenuCarousel'; // Import MenuCarousel
+// import { customerApi } from '../api/customerApi';
 // import { useCart } from '../context/CartContext';
 
-// // Mock menu data
-// const menuData = {
-//   starters: [
-//     { id: 's1', name: 'Garlic Bread', price: 5.99, emoji: '🍞', description: 'Freshly baked bread with garlic butter' },
-//     { id: 's2', name: 'Chicken Wings', price: 8.99, emoji: '🍗', description: 'Spicy buffalo wings with blue cheese dip' },
-//     { id: 's3', name: 'Mozzarella Sticks', price: 6.99, emoji: '🧀', description: 'Breaded and fried mozzarella sticks' },
-//     { id: 's4', name: 'Nachos', price: 7.99, emoji: '🌮', description: 'Tortilla chips with cheese, salsa, and guacamole' },
-//   ],
-//   mains: [
-//     { id: 'm1', name: 'Margherita Pizza', price: 12.99, emoji: '🍕', description: 'Classic pizza with tomato sauce and mozzarella' },
-//     { id: 'm2', name: 'Cheeseburger', price: 10.99, emoji: '🍔', description: 'Beef patty with cheese, lettuce, and tomato' },
-//     { id: 'm3', name: 'Pasta Carbonara', price: 13.99, emoji: '🍝', description: 'Spaghetti with creamy sauce, bacon, and parmesan' },
-//     { id: 'm4', name: 'Grilled Salmon', price: 15.99, emoji: '🐟', description: 'Fresh salmon fillet with lemon and herbs' },
-//   ],
-//   desserts: [
-//     { id: 'd1', name: 'Chocolate Cake', price: 6.99, emoji: '🍰', description: 'Rich chocolate cake with fudge frosting' },
-//     { id: 'd2', name: 'Ice Cream', price: 4.99, emoji: '🍦', description: 'Vanilla ice cream with chocolate sauce' },
-//     { id: 'd3', name: 'Apple Pie', price: 5.99, emoji: '🥧', description: 'Classic apple pie with cinnamon' },
-//     { id: 'd4', name: 'Cheesecake', price: 6.99, emoji: '🍮', description: 'New York-style cheesecake with berry compote' },
-//   ],
-//   drinks: [
-//     { id: 'dr1', name: 'Cola', price: 2.99, emoji: '🥤', description: 'Classic cola with ice' },
-//     { id: 'dr2', name: 'Lemonade', price: 3.49, emoji: '🍋', description: 'Freshly squeezed lemonade' },
-//     { id: 'dr3', name: 'Coffee', price: 3.99, emoji: '☕', description: 'Freshly brewed coffee' },
-//     { id: 'dr4', name: 'Mojito', price: 7.99, emoji: '🍹', description: 'Classic mojito with rum, mint, and lime' },
-//   ],
-// };
-
-// // Mock quiz data
-// const mockQuiz = {
-//   title: 'Food Trivia',
-//   questions: [
-//     {
-//       question: 'Which country is known as the birthplace of pizza?',
-//       answers: ['France', 'Italy', 'Spain', 'Greece'],
-//       correctAnswer: 1,
-//     },
-//     {
-//       question: 'What is the main ingredient in guacamole?',
-//       answers: ['Tomato', 'Avocado', 'Onion', 'Lime'],
-//       correctAnswer: 1,
-//     },
-//     {
-//       question: 'Which of these is NOT a pasta shape?',
-//       answers: ['Penne', 'Farfalle', 'Ravioli', 'Risole'],
-//       correctAnswer: 3,
-//     },
-//   ],
-// };
-
 // const MenuPage = () => {
-//   const navigate = useNavigate();
-//   const { cart, toggleCart } = useCart();
-//   const [showQuiz, setShowQuiz] = useState(false);
-  
-//   // Show quiz after a delay (simulating engagement after user browses menu)
-//   React.useEffect(() => {
-//     const timer = setTimeout(() => {
-//       setShowQuiz(true);
-//     }, 10000);
-    
-//     return () => clearTimeout(timer);
+//   const [menuItems, setMenuItems] = useState([]);
+//   const [loading, setLoading] = useState(true);
+//   const [error, setError] = useState(null);
+//   const [activeFilter, setActiveFilter] = useState('all');
+//   const [showFilters, setShowFilters] = useState(false);
+//   const [searchQuery, setSearchQuery] = useState('');
+//   const { cart, addToCart, removeFromCart, toggleCart } = useCart(); // Use toggleCart for cart functionality
+
+//   const filters = [
+//     { id: 'all', name: 'All Items' },
+//     { id: 'veg', name: 'Vegetarian' },
+//     { id: 'non-veg', name: 'Non-Vegetarian' },
+//     { id: 'vegan', name: 'Vegan' },
+//     { id: 'gluten-free', name: 'Gluten Free' },
+//   ];
+
+//   // Group items by category
+//   const groupByCategory = useCallback((items) => {
+//     return items.reduce((acc, item) => {
+//       const category = item.category || 'Uncategorized';
+//       if (!acc[category]) {
+//         acc[category] = [];
+//       }
+//       acc[category].push(item);
+//       return acc;
+//     }, {});
 //   }, []);
-  
+
+//   // Apply filters and search
+//   const getFilteredItems = useCallback(() => {
+//     let filtered = [...menuItems];
+//     // Apply dietary filter
+//     if (activeFilter !== 'all') {
+//       filtered = filtered.filter(item =>
+//         item.dietary_tag?.toLowerCase().includes(activeFilter)
+//       );
+//     }
+//     // Apply search
+//     if (searchQuery) {
+//       const query = searchQuery.toLowerCase();
+//       filtered = filtered.filter(item =>
+//         item.name.toLowerCase().includes(query) ||
+//         item.description?.toLowerCase().includes(query) ||
+//         item.category?.toLowerCase().includes(query)
+//       );
+//     }
+//     return filtered;
+//   }, [menuItems, activeFilter, searchQuery]);
+
+//   // Get categorized items
+//   const categorizedItems = groupByCategory(getFilteredItems());
+
+//   useEffect(() => {
+//     const fetchMenu = async () => {
+//       try {
+//         setLoading(true);
+//         const response = await customerApi.getMenu();
+//         if (Array.isArray(response)) {
+//           const availableItems = response.filter(item => item.is_available);
+//           setMenuItems(availableItems);
+//         } else {
+//           throw new Error('Invalid menu format');
+//         }
+//       } catch (err) {
+//         setError(err.message || 'Failed to load menu.');
+//       } finally {
+//         setLoading(false);
+//       }
+//     };
+//     fetchMenu();
+//   }, []);
+
+//   const handleAddToCart = (item) => {
+//     addToCart(item);
+//   };
+
+//   const handleRemoveFromCart = (itemId) => {
+//     removeFromCart(itemId);
+//   };
+
+//   const getCartQuantity = (itemId) => {
+//     const itemInCart = cart.find(item => item.id === itemId);
+//     return itemInCart ? itemInCart.quantity : 0;
+//   };
+
+//   if (loading) return (
+//     <div className="flex items-center justify-center h-screen bg-gradient-to-b from-purple-50 to-white">
+//       <motion.div
+//         animate={{ rotate: 360 }}
+//         transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+//         className="w-16 h-16 border-4 border-purple-300 border-t-purple-600 rounded-full"
+//       />
+//     </div>
+//   );
+
+//   if (error) return (
+//     <div className="flex items-center justify-center h-screen bg-gradient-to-b from-purple-50 to-white">
+//       <motion.div
+//         initial={{ scale: 0.8 }}
+//         animate={{ scale: 1 }}
+//         className="p-6 bg-white rounded-xl shadow-lg text-center max-w-md"
+//       >
+//         <h2 className="text-xl font-bold text-purple-800 mb-2">Error Loading Menu</h2>
+//         <p className="text-gray-600 mb-4">{error}</p>
+//         <button
+//           onClick={() => window.location.reload()}
+//           className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+//         >
+//           Try Again
+//         </button>
+//       </motion.div>
+//     </div>
+//   );
+
+//   if (!menuItems.length) return (
+//     <div className="flex items-center justify-center h-screen bg-gradient-to-b from-purple-50 to-white">
+//       <motion.div
+//         initial={{ opacity: 0 }}
+//         animate={{ opacity: 1 }}
+//         className="p-6 bg-white rounded-xl shadow-lg text-center max-w-md"
+//       >
+//         <h2 className="text-xl font-bold text-purple-800 mb-2">Menu Unavailable</h2>
+//         <p className="text-gray-600">Currently no menu items are available. Please check back later.</p>
+//       </motion.div>
+//     </div>
+//   );
+
 //   return (
 //     <motion.div
 //       initial={{ opacity: 0 }}
 //       animate={{ opacity: 1 }}
 //       exit={{ opacity: 0 }}
-//       className="min-h-screen bg-[#F5F7FA] pb-20"
+//       className="min-h-screen bg-gradient-to-b from-purple-50 to-white"
 //     >
 //       {/* Header */}
-//       <div className="sticky top-0 z-10 bg-white shadow-md px-4 py-3 flex items-center justify-between">
-//         <div className="flex items-center">
-//           <button 
-//             onClick={() => navigate('/customer/chat')}
-//             className="mr-3 p-1 rounded-full hover:bg-gray-100"
-//           >
-//             <ChevronLeft size={24} className="text-[#7A7F87]" />
-//           </button>
-//           <h1 className="font-bold text-lg">Menu</h1>
-//         </div>
-        
+//       <div className="sticky top-0 z-20 bg-white bg-opacity-90 backdrop-blur-sm shadow-sm p-4 flex justify-between items-center">
 //         <motion.button
-//           onClick={toggleCart}
-//           className="relative p-2 rounded-full bg-[#4C4C9D] text-white"
-//           whileHover={{ scale: 1.05 }}
-//           whileTap={{ scale: 0.95 }}
+//           whileTap={{ scale: 0.9 }}
+//           onClick={() => window.history.back()}
+//           className="p-2 rounded-full hover:bg-purple-50 transition-colors"
 //         >
-//           <ShoppingCart size={20} />
-//           {cart.items.length > 0 && (
-//             <span className="absolute -top-1 -right-1 bg-red-500 text-white w-5 h-5 rounded-full text-xs flex items-center justify-center">
-//               {cart.items.reduce((total, item) => total + item.quantity, 0)}
-//             </span>
+//           <ChevronLeft className="text-purple-700" />
+//         </motion.button>
+//         <motion.h1
+//           initial={{ y: -20 }}
+//           animate={{ y: 0 }}
+//           className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-purple-400 bg-clip-text text-transparent"
+//         >
+//           Premium Menu
+//         </motion.h1>
+//         <div className="relative">
+//           <motion.button
+//             whileTap={{ scale: 0.9 }}
+//             className="p-2 rounded-full hover:bg-purple-50 transition-colors relative"
+//             onClick={toggleCart} // Use toggleCart to open/close cart
+//           >
+//             <ShoppingCart className="text-purple-700" />
+//             {cart.length > 0 && (
+//               <motion.span
+//                 initial={{ scale: 0 }}
+//                 animate={{ scale: 1 }}
+//                 className="absolute -top-1 -right-1 bg-purple-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center"
+//               >
+//                 {cart.reduce((total, item) => total + item.quantity, 0)}
+//               </motion.span>
+//             )}
+//           </motion.button>
+//         </div>
+//       </div>
+
+//       {/* Search Bar */}
+//       <div className="px-4 mt-4">
+//         <motion.div
+//           initial={{ y: -20, opacity: 0 }}
+//           animate={{ y: 0, opacity: 1 }}
+//           className="relative"
+//         >
+//           <input
+//             type="text"
+//             placeholder="Search menu items..."
+//             value={searchQuery}
+//             onChange={(e) => setSearchQuery(e.target.value)}
+//             className="w-full px-4 py-3 pl-10 bg-white rounded-lg border border-purple-100 focus:outline-none focus:ring-2 focus:ring-purple-300 focus:border-transparent shadow-sm"
+//           />
+//           <Search className="absolute left-3 top-3.5 text-purple-400" size={18} />
+//           {searchQuery && (
+//             <button
+//               onClick={() => setSearchQuery('')}
+//               className="absolute right-3 top-3.5 text-purple-400 hover:text-purple-600"
+//             >
+//               <X size={18} />
+//             </button>
 //           )}
+//         </motion.div>
+//       </div>
+
+//       {/* Filter Button */}
+//       <div className="px-4 mt-4">
+//         <motion.button
+//           whileHover={{ scale: 1.02 }}
+//           whileTap={{ scale: 0.98 }}
+//           onClick={() => setShowFilters(!showFilters)}
+//           className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-full shadow-md hover:bg-purple-700 transition-colors"
+//         >
+//           <Filter size={18} />
+//           <span>Filters</span>
 //         </motion.button>
 //       </div>
-      
-//       {/* Banner */}
-//       <div className="bg-[#4C4C9D] text-white p-6 mb-4">
-//         <h2 className="text-xl font-bold mb-2">Today's Special</h2>
-//         <p>Try our chef's recommendation: Truffle Pasta with Parmesan</p>
+
+//       {/* Filter Panel */}
+//       <AnimatePresence>
+//         {showFilters && (
+//           <motion.div
+//             initial={{ opacity: 0, height: 0 }}
+//             animate={{ opacity: 1, height: 'auto' }}
+//             exit={{ opacity: 0, height: 0 }}
+//             transition={{ duration: 0.3 }}
+//             className="overflow-hidden px-4"
+//           >
+//             <div className="flex flex-wrap gap-2 py-4">
+//               {filters.map(filter => (
+//                 <motion.button
+//                   key={filter.id}
+//                   whileHover={{ scale: 1.05 }}
+//                   whileTap={{ scale: 0.95 }}
+//                   onClick={() => setActiveFilter(filter.id)}
+//                   className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+//                     activeFilter === filter.id
+//                       ? 'bg-purple-600 text-white shadow-md'
+//                       : 'bg-white text-purple-700 border border-purple-200 hover:bg-purple-50'
+//                   }`}
+//                 >
+//                   {filter.name}
+//                 </motion.button>
+//               ))}
+//             </div>
+//           </motion.div>
+//         )}
+//       </AnimatePresence>
+
+//       {/* Menu Sections as Carousels */}
+//       <div className="pb-24 px-4">
+//         {Object.keys(categorizedItems).length > 0 ? (
+//           Object.entries(categorizedItems).map(([category, items]) => (
+//             <MenuCarousel
+//               key={category}
+//               title={category}
+//               items={items}
+//               onAddToCart={handleAddToCart}
+//               onRemoveFromCart={handleRemoveFromCart}
+//               cartItems={cart}
+//             />
+//           ))
+//         ) : (
+//           <motion.div
+//             initial={{ opacity: 0 }}
+//             animate={{ opacity: 1 }}
+//             className="text-center py-12"
+//           >
+//             <div className="text-purple-400 mb-4">
+//               <Search size={48} className="mx-auto" />
+//             </div>
+//             <h3 className="text-xl font-semibold text-purple-800 mb-2">No items found</h3>
+//             <p className="text-gray-600">Try adjusting your search or filter criteria</p>
+//             <button
+//               onClick={() => {
+//                 setSearchQuery('');
+//                 setActiveFilter('all');
+//               }}
+//               className="mt-4 px-4 py-2 bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 transition-colors"
+//             >
+//               Clear filters
+//             </button>
+//           </motion.div>
+//         )}
 //       </div>
-      
-//       {/* Menu sections */}
-//       <div className="py-2">
-//         <MenuCarousel items={menuData.starters} title="Starters" />
-//         <MenuCarousel items={menuData.mains} title="Main Courses" />
-//         <MenuCarousel items={menuData.desserts} title="Desserts" />
-//         <MenuCarousel items={menuData.drinks} title="Drinks" />
-//       </div>
-      
-//       <CartSlideOver />
-//       <QuizOverlay isOpen={showQuiz} onClose={() => setShowQuiz(false)} quiz={mockQuiz} />
 //     </motion.div>
 //   );
 // };
 
 // export default MenuPage;
-// //---------------------------ORIGINAL----------------------------
 
-import React, { useEffect, useState } from 'react';
-import { motion } from 'framer-motion';
-import { ChevronLeft, ShoppingCart } from 'lucide-react';
+import React, { useEffect, useState, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ChevronLeft, ShoppingCart, X, Filter, Search } from 'lucide-react';
 import MenuCarousel from '../components/MenuCards/MenuCarousel';
-import CartSlideOver from '../components/PaymentPanel/CartSlideOver';
-import QuizOverlay from '../components/EngagementQuiz/QuizOverlay';
 import { customerApi } from '../api/customerApi';
+import { useCart } from '../context/CartContext';
 
-const MenuPage = ({ organizationId }) => {
+const MenuPage = () => {
   const [menuItems, setMenuItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [activeFilter, setActiveFilter] = useState('all');
+  const [showFilters, setShowFilters] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const { cart, addToCart, removeFromCart, toggleCart } = useCart();
 
+  const filters = [
+    { id: 'all', name: 'All Items' },
+    { id: 'veg', name: 'Vegetarian' },
+    { id: 'non-veg', name: 'Non-Vegetarian' },
+    { id: 'vegan', name: 'Vegan' },
+    { id: 'gluten-free', name: 'Gluten Free' },
+  ];
+
+  // Group items by category
+  const groupByCategory = useCallback((items) => {
+    return items.reduce((acc, item) => {
+      const category = item.category || 'Uncategorized';
+      if (!acc[category]) {
+        acc[category] = [];
+      }
+      acc[category].push(item);
+      return acc;
+    }, {});
+  }, []);
+
+  // Apply filters and search
+  const getFilteredItems = useCallback(() => {
+    let filtered = [...menuItems];
+    // Apply dietary filter
+    if (activeFilter !== 'all') {
+      filtered = filtered.filter((item) =>
+        item.dietary_tag?.toLowerCase().includes(activeFilter)
+      );
+    }
+    // Apply search
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(
+        (item) =>
+          item.name.toLowerCase().includes(query) ||
+          item.description?.toLowerCase().includes(query) ||
+          item.category?.toLowerCase().includes(query)
+      );
+    }
+    return filtered;
+  }, [menuItems, activeFilter, searchQuery]);
+
+  // Get categorized items
+  const categorizedItems = groupByCategory(getFilteredItems());
+
+  // Fetch menu data
   useEffect(() => {
     const fetchMenu = async () => {
       try {
         setLoading(true);
-        const data = await customerApi.getMenu(organizationId);
-        setMenuItems(data.menu_items || []);
+        const response = await customerApi.getMenu();
+        if (Array.isArray(response)) {
+          const availableItems = response.filter((item) => item.is_available);
+          setMenuItems(availableItems);
+        } else {
+          throw new Error('Invalid menu format');
+        }
       } catch (err) {
         setError(err.message || 'Failed to load menu.');
       } finally {
@@ -154,21 +1168,210 @@ const MenuPage = ({ organizationId }) => {
       }
     };
     fetchMenu();
-  }, [organizationId]);
+  }, []);
 
-  if (loading) return <p>Loading...</p>;
-  if (error) return <p>Error: {error}</p>;
+  const handleAddToCart = (item) => {
+    addToCart(item);
+  };
+
+  const handleRemoveFromCart = (itemId) => {
+    removeFromCart(itemId);
+  };
+
+  if (loading)
+    return (
+      <div className="flex items-center justify-center h-screen bg-gradient-to-b from-purple-50 to-white">
+        <motion.div
+          animate={{ rotate: 360 }}
+          transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
+          className="w-16 h-16 border-4 border-purple-300 border-t-purple-600 rounded-full"
+        />
+      </div>
+    );
+
+  if (error)
+    return (
+      <div className="flex items-center justify-center h-screen bg-gradient-to-b from-purple-50 to-white">
+        <motion.div
+          initial={{ scale: 0.8 }}
+          animate={{ scale: 1 }}
+          className="p-6 bg-white rounded-xl shadow-lg text-center max-w-md"
+        >
+          <h2 className="text-xl font-bold text-purple-800 mb-2">Error Loading Menu</h2>
+          <p className="text-gray-600 mb-4">{error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+          >
+            Try Again
+          </button>
+        </motion.div>
+      </div>
+    );
+
+  if (!menuItems.length)
+    return (
+      <div className="flex items-center justify-center h-screen bg-gradient-to-b from-purple-50 to-white">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="p-6 bg-white rounded-xl shadow-lg text-center max-w-md"
+        >
+          <h2 className="text-xl font-bold text-purple-800 mb-2">Menu Unavailable</h2>
+          <p className="text-gray-600">Currently no menu items are available. Please check back later.</p>
+        </motion.div>
+      </div>
+    );
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-      <div className="flex justify-between items-center p-4 bg-gray-100">
-        <ChevronLeft className="cursor-pointer" onClick={() => window.history.back()} />
-        <h1 className="text-xl font-bold">Menu</h1>
-        <ShoppingCart className="cursor-pointer" />
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="min-h-screen bg-gradient-to-b from-purple-50 to-white"
+    >
+      {/* Header */}
+      <div className="sticky top-0 z-20 bg-white bg-opacity-90 backdrop-blur-sm shadow-sm p-4 flex justify-between items-center">
+        <motion.button
+          whileTap={{ scale: 0.9 }}
+          onClick={() => window.history.back()}
+          className="p-2 rounded-full hover:bg-purple-50 transition-colors"
+        >
+          <ChevronLeft className="text-purple-700" />
+        </motion.button>
+        <motion.h1
+          initial={{ y: -20 }}
+          animate={{ y: 0 }}
+          className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-purple-400 bg-clip-text text-transparent"
+        >
+          Premium Menu
+        </motion.h1>
+        <div className="relative">
+          <motion.button
+            whileTap={{ scale: 0.9 }}
+            className="p-2 rounded-full hover:bg-purple-50 transition-colors relative"
+            onClick={toggleCart}
+          >
+            <ShoppingCart className="text-purple-700" />
+            {cart.length > 0 && (
+              <motion.span
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                className="absolute -top-1 -right-1 bg-purple-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center"
+              >
+                {cart.reduce((total, item) => total + item.quantity, 0)}
+              </motion.span>
+            )}
+          </motion.button>
+        </div>
       </div>
-      <MenuCarousel menuItems={menuItems} />
-      <CartSlideOver />
-      <QuizOverlay />
+
+      {/* Search Bar */}
+      <div className="px-4 mt-4">
+        <motion.div
+          initial={{ y: -20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          className="relative"
+        >
+          <input
+            type="text"
+            placeholder="Search menu items..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full px-4 py-3 pl-10 bg-white rounded-lg border border-purple-100 focus:outline-none focus:ring-2 focus:ring-purple-300 focus:border-transparent shadow-sm"
+          />
+          <Search className="absolute left-3 top-3.5 text-purple-400" size={18} />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery('')}
+              className="absolute right-3 top-3.5 text-purple-400 hover:text-purple-600"
+            >
+              <X size={18} />
+            </button>
+          )}
+        </motion.div>
+      </div>
+
+      {/* Filter Button */}
+      <div className="px-4 mt-4">
+        <motion.button
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          onClick={() => setShowFilters(!showFilters)}
+          className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-full shadow-md hover:bg-purple-700 transition-colors"
+        >
+          <Filter size={18} />
+          <span>Filters</span>
+        </motion.button>
+      </div>
+
+      {/* Filter Panel */}
+      <AnimatePresence>
+        {showFilters && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.3 }}
+            className="overflow-hidden px-4"
+          >
+            <div className="flex flex-wrap gap-2 py-4">
+              {filters.map((filter) => (
+                <motion.button
+                  key={filter.id}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => setActiveFilter(filter.id)}
+                  className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                    activeFilter === filter.id
+                      ? 'bg-purple-600 text-white shadow-md'
+                      : 'bg-white text-purple-700 border border-purple-200 hover:bg-purple-50'
+                  }`}
+                >
+                  {filter.name}
+                </motion.button>
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Menu Sections as Carousels */}
+      <div className="pb-24 px-4">
+        {Object.keys(categorizedItems).length > 0 ? (
+          Object.entries(categorizedItems).map(([category, items]) => (
+            <MenuCarousel
+              key={category}
+              title={category}
+              items={items}
+              onAddToCart={handleAddToCart}
+              onRemoveFromCart={handleRemoveFromCart}
+              cartItems={cart}
+            />
+          ))
+        ) : (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="text-center py-12"
+          >
+            <div className="text-purple-400 mb-4">
+              <Search size={48} className="mx-auto" />
+            </div>
+            <h3 className="text-xl font-semibold text-purple-800 mb-2">No items found</h3>
+            <p className="text-gray-600">Try adjusting your search or filter criteria</p>
+            <button
+              onClick={() => {
+                setSearchQuery('');
+                setActiveFilter('all');
+              }}
+              className="mt-4 px-4 py-2 bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 transition-colors"
+            >
+              Clear filters
+            </button>
+          </motion.div>
+        )}
+      </div>
     </motion.div>
   );
 };

@@ -2,21 +2,16 @@ const BASE_URL = 'https://qr-agent.onrender.com/api/customer';
 
 export const customerApi = {
   // Get Menu
-  getMenu: async (organizationId) => {
-    try {
-      const response = await fetch(`${BASE_URL}/menu?organization_id=${organizationId}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
-        },
-      });
-      if (!response.ok) throw new Error((await response.json()).error || 'Failed to fetch menu');
-      return response.json();
-    } catch (err) {
-      console.error('Error fetching menu:', err.message);
-      throw err;
-    }
+  getMenu: async () => {
+    const response = await fetch(`${BASE_URL}/menu?organization_id=1`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${localStorage.getItem('jwt')}`,
+      },
+    });
+    if (!response.ok) throw new Error((await response.json()).error || 'Failed to fetch menu');
+    return response.json();
   },
 
   // Place Order
@@ -26,7 +21,7 @@ export const customerApi = {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
+          Authorization: `Bearer ${localStorage.getItem('jwt')}`,
         },
         body: JSON.stringify(orderData),
       });
@@ -45,7 +40,7 @@ export const customerApi = {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
+          Authorization: `Bearer ${localStorage.getItem('jwt')}`,
         },
       });
       if (!response.ok) throw new Error((await response.json()).error || 'Failed to fetch order status');
@@ -63,7 +58,7 @@ export const customerApi = {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
+          Authorization: `Bearer ${localStorage.getItem('jwt')}`,
         },
         body: JSON.stringify(cartItem),
       });
@@ -82,7 +77,7 @@ export const customerApi = {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
+          Authorization: `Bearer ${localStorage.getItem('jwt')}`,
         },
       });
       if (!response.ok) throw new Error((await response.json()).error || 'Failed to fetch cart');
@@ -100,7 +95,7 @@ export const customerApi = {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
+          Authorization: `Bearer ${localStorage.getItem('jwt')}`,
         },
       });
       if (!response.ok) throw new Error((await response.json()).error || 'Failed to remove item from cart');
@@ -118,7 +113,7 @@ export const customerApi = {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
+          Authorization: `Bearer ${localStorage.getItem('jwt')}`,
         },
         body: JSON.stringify({ table_id: tableId }),
       });
