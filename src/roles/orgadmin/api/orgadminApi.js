@@ -1,3 +1,4 @@
+import { jwtDecode } from 'jwt-decode';
 const BASE_URL = 'https://qr-agent.onrender.com/org-admin';
 const API_URL = 'https://qr-agent.onrender.com/api/organizations';
 
@@ -42,7 +43,7 @@ export const orgadminApi = {
         console.warn('⚠️ localStorage failed. Falling back to sessionStorage...');
         try {
           // Fallback to sessionStorage if localStorage fails
-          sessionStorage.setItem('orgadmin_token', token);
+          sessionStorage.setItem('orgadmin_token1', token);
           console.log('🌍 Current sessionStorage state after saving token:', { ...sessionStorage });
         } catch (sessionError) {
           console.error('❌ Failed to save token to both localStorage and sessionStorage:', sessionError.message);
@@ -60,32 +61,16 @@ export const orgadminApi = {
   // Internal helper to get token or throw error
   _getToken: () => {
     try {
-      console.log('🔍 Retrieving token from storage...');
-      let token;
-
-      // Try retrieving token from localStorage
-      try {
-        token = localStorage.getItem('orgadmin_token1');
-        console.log('🌍 Retrieved token from localStorage:', token);
-      } catch (localStorageError) {
-        console.warn('⚠️ localStorage retrieval failed. Falling back to sessionStorage...');
-      }
-
-      // If localStorage fails or token is not found, try sessionStorage
+      let token = localStorage.getItem('orgadmin_token');
       if (!token) {
-        token = sessionStorage.getItem('orgadmin_token1');
-        console.log('🌍 Retrieved token from sessionStorage:', token);
+        token = sessionStorage.getItem('orgadmin_token');
       }
-
       if (!token) {
-        console.warn('🚫 Missing orgadmin_token in storage');
-        window.location.href = '/login'; // Redirect to login page
+        window.location.href = '/login';
         throw new Error('Missing authentication. Please log in again.');
       }
-
       return token;
     } catch (error) {
-      console.error('❌ Error retrieving token from storage:', error.message);
       throw new Error('Token retrieval failed. Please log in again.');
     }
   },
@@ -253,37 +238,6 @@ deleteMenuItem: async (id) => {
     }
   },
 
-  // // Bulk create tables
-  // bulkCreateTables: async (count) => {
-  //   const token = orgadminApi._getToken(); // Get the token
-  //   try {
-  //     console.log('🌐 Sending POST request to:', `${API_URL}/tables/bulk`);
-  //     const response = await fetch(`${API_URL}/tables/bulk`, {
-  //       method: 'POST',
-  //       headers: {
-  //         Authorization: `Bearer ${token}`,
-  //         'Content-Type': 'application/json',
-  //         Accept: 'application/json',
-  //       },
-  //       body: JSON.stringify({ count }),
-  //     });
-
-  //     if (!response.ok) {
-  //       const errorData = await response.json();
-  //       console.error('❌ Failed to bulk create tables. Response status:', response.status);
-  //       console.error('❌ Failed to bulk create tables. Response data:', errorData);
-  //       throw new Error(errorData.error || 'Failed to bulk create tables.');
-  //     }
-
-  //     const data = await response.json();
-  //     console.log('✅ Tables bulk created:', data);
-  //     return data;
-  //   } catch (error) {
-  //     console.error('🔥 Error in bulkCreateTables:', error.message);
-  //     throw error;
-  //   }
-  // },
-
   bulkCreateTables: async (count) => {
   const token = orgadminApi._getToken(); // Get the token
   try {
@@ -446,7 +400,84 @@ deleteTables: async (tableIds) => {
     throw error;
   }
 },
+// // Add a new staff member
+// createStaffMember: async (staffData) => {
+//   const token = orgadminApi._getToken();
+//   try {
+//     // Decode token to get organization ID
+//     const decodedToken = jwtDecode(token);
+//     const organizationId = decodedToken.identity.org_id;
 
+//     // Prepare payload (no organization_id in body unless backend expects it)
+//     const payload = {
+//       ...staffData,
+//       // organization_id: organizationId, // REMOVE this line if not needed in body
+//     };
 
+//     // Use org_id in the URL as per backend requirement
+//     const url = `https://qr-agent.onrender.com/api/superadmin/organizations/${organizationId}/staff`;
+
+//     console.log('🌐 Sending POST request to:', url);
+//     const response = await fetch(url, {
+//       method: 'POST',
+//       headers: {
+//         Authorization: `Bearer ${token}`,
+//         'Content-Type': 'application/json',
+//         Accept: 'application/json',
+//       },
+//       body: JSON.stringify(payload),
+//     });
+
+//     if (!response.ok) {
+//       const errorData = await response.json();
+//       console.error('❌ Failed to create staff member. Response status:', response.status);
+//       console.error('❌ Failed to create staff member. Response data:', errorData);
+//       throw new Error(errorData.error || 'Failed to create staff member.');
+//     }
+
+//     const data = await response.json();
+//     console.log('✅ Staff member created:', data);
+//     return data;
+//   } catch (error) {
+//     console.error('🔥 Error in createStaffMember:', error.message);
+//     throw error;
+//   }
+// },
+
+createStaffMember: async (staffData) => {
+  const token = orgadminApi._getToken();
+  // Get org_id from localStorage (set by OrgAdminAuthContext)
+  const organizationId = localStorage.getItem('organization_id');
+  if (!organizationId) {
+    throw new Error('Organization ID not found.');
+  }
+  const url = `https://qr-agent.onrender.com/api/superadmin/organizations/${organizationId}/staff`;
+  try {
+    console.log('🌐 Sending POST request to:', url);
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+      },
+      body: JSON.stringify(staffData),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error('❌ Failed to create staff member. Response status:', response.status);
+      console.error('❌ Failed to create staff member. Response data:', errorData);
+      throw new Error(errorData.error || 'Failed to create staff member.');
+    }
+
+    const data = await response.json();
+    console.log('✅ Staff member created:', data);
+    return data;
+  } catch (error) {
+    console.error('🔥 Error in createStaffMember:', error.message);
+    throw error;
+  }
+},
 };
 
