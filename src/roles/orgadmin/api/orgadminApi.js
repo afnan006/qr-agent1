@@ -1,5 +1,6 @@
 import { jwtDecode } from 'jwt-decode';
-const BASE_URL = 'https://qr-agent.onrender.com/org-admin';
+
+const BASE_URL = 'https://qr-agent.onrender.com/organizations';
 const API_URL = 'https://qr-agent.onrender.com/api/organizations';
 
 export const orgadminApi = {
@@ -27,28 +28,24 @@ export const orgadminApi = {
       console.log('✅ Login successful. Response data:', data);
 
       // Save only the token to localStorage
-      const token = data.org_admin_token || data.token; // Adjust based on actual response
+      const token = data.org_admin_token || data.token;
       if (!token) {
         console.error('❌ No token found in login response:', data);
         throw new Error('No token received from the server.');
       }
 
-      console.log('🔑 Saving token to localStorage:', token);
+      // Store token as orgadmin_token1 everywhere
+      localStorage.setItem('orgadmin_token1', token);
+
+      // Decode token and store organization_id for later use
       try {
-        // Attempt to save token to localStorage
-        console.error('=====================:', token);
-        localStorage.setItem('orgadmin_token1', token);
-        console.log('🌍 Current localStorage state after saving token:', { ...localStorage });
-      } catch (storageError) {
-        console.warn('⚠️ localStorage failed. Falling back to sessionStorage...');
-        try {
-          // Fallback to sessionStorage if localStorage fails
-          sessionStorage.setItem('orgadmin_token1', token);
-          console.log('🌍 Current sessionStorage state after saving token:', { ...sessionStorage });
-        } catch (sessionError) {
-          console.error('❌ Failed to save token to both localStorage and sessionStorage:', sessionError.message);
-          throw new Error('Failed to save token. Please check browser settings.');
+        const decodedToken = jwtDecode(token);
+        const organizationId = decodedToken.identity?.org_id;
+        if (organizationId) {
+          localStorage.setItem('organization_id', organizationId);
         }
+      } catch (decodeError) {
+        console.error('❌ Failed to decode token:', decodeError.message);
       }
 
       return data;
@@ -61,9 +58,9 @@ export const orgadminApi = {
   // Internal helper to get token or throw error
   _getToken: () => {
     try {
-      let token = localStorage.getItem('orgadmin_token');
+      let token = localStorage.getItem('orgadmin_token1');
       if (!token) {
-        token = sessionStorage.getItem('orgadmin_token');
+        token = sessionStorage.getItem('orgadmin_token1');
       }
       if (!token) {
         window.location.href = '/login';
@@ -78,14 +75,14 @@ export const orgadminApi = {
   // Fetch menu items
   getMenuItems: async () => {
     console.log('📥 Fetching menu items...');
-    const token = orgadminApi._getToken(); // Get the token
+    const token = orgadminApi._getToken();
 
     try {
       console.log('🌐 Sending GET request to:', `${API_URL}/menu/items`);
       const response = await fetch(`${API_URL}/menu/items`, {
         method: 'GET',
         headers: {
-          Authorization: `Bearer ${token}`, // Include token in the header
+          Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
           Accept: 'application/json',
         },
@@ -109,7 +106,7 @@ export const orgadminApi = {
 
   // Create a menu item
   createMenuItem: async (menuItemData) => {
-    const token = orgadminApi._getToken(); // Get the token
+    const token = orgadminApi._getToken();
     try {
       console.log('🌐 Sending POST request to:', `${API_URL}/menu/items`);
       const response = await fetch(`${API_URL}/menu/items`, {
@@ -140,7 +137,7 @@ export const orgadminApi = {
 
   // Bulk import menu items
   bulkImportMenuItems: async (file) => {
-    const token = orgadminApi._getToken(); // Get the token
+    const token = orgadminApi._getToken();
     const formData = new FormData();
     formData.append('file', file);
 
@@ -168,55 +165,56 @@ export const orgadminApi = {
       console.error('🔥 Error in bulkImportMenuItems:', error.message);
       throw error;
     }
-    
   },
 
   // Update a menu item
-updateMenuItem: async (id, item) => {
-  const token = orgadminApi._getToken();
-  const response = await fetch(`${API_URL}/menu/items/${id}`, {
-    method: 'PUT',
-    headers: {
-      Authorization: `Bearer ${token}`,
-      'Content-Type': 'application/json',
-      Accept: 'application/json',
-    },
-    body: JSON.stringify(item),
-  });
-  if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData.error || 'Failed to update menu item.');
-  }
-  return response.json();
-},
+  updateMenuItem: async (id, item) => {
+    const token = orgadminApi._getToken();
+    const response = await fetch(`${API_URL}/menu/items/${id}`, {
+      method: 'PUT',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+      },
+      body: JSON.stringify(item),
+    });
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Failed to update menu item.');
+    }
+    return response.json();
+  },
+
   // Delete a menu item
-deleteMenuItem: async (id) => {
-  const token = orgadminApi._getToken();
-  const response = await fetch(`${API_URL}/menu/items/${id}`, {
-    method: 'DELETE',
-    headers: {
-      Authorization: `Bearer ${token}`,
-      'Content-Type': 'application/json',
-      Accept: 'application/json',
-    },
-  });
-  if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData.error || 'Failed to delete menu item.');
-  }
-  return response.json();
-},
+  deleteMenuItem: async (id) => {
+    const token = orgadminApi._getToken();
+    const response = await fetch(`${API_URL}/menu/items/${id}`, {
+      method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+      },
+    });
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Failed to delete menu item.');
+    }
+    return response.json();
+  },
+
   // Fetch tables
   getTables: async () => {
     console.log('📥 Fetching tables...');
-    const token = orgadminApi._getToken(); // Get the token
+    const token = orgadminApi._getToken();
 
     try {
       console.log('🌐 Sending GET request to:', `${API_URL}/tables`);
       const response = await fetch(`${API_URL}/tables`, {
         method: 'GET',
         headers: {
-          Authorization: `Bearer ${token}`, // Include token in the header
+          Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
           Accept: 'application/json',
         },
@@ -238,246 +236,181 @@ deleteMenuItem: async (id) => {
     }
   },
 
+  // Bulk create tables
   bulkCreateTables: async (count) => {
-  const token = orgadminApi._getToken(); // Get the token
-  try {
-    console.log('🌐 Sending POST request to:', `${API_URL}/tables/bulk`);
-    const response = await fetch(`${API_URL}/tables/bulk`, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-        Accept: 'application/json',
-      },
-      body: JSON.stringify({ count }), // just one level
-    });
+    const token = orgadminApi._getToken();
+    try {
+      console.log('🌐 Sending POST request to:', `${API_URL}/tables/bulk`);
+      const response = await fetch(`${API_URL}/tables/bulk`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        },
+        body: JSON.stringify({ count }),
+      });
 
-    const contentType = response.headers.get('content-type');
+      const contentType = response.headers.get('content-type');
 
-    if (!response.ok) {
-      if (contentType && contentType.includes('application/json')) {
+      if (!response.ok) {
+        if (contentType && contentType.includes('application/json')) {
+          const errorData = await response.json();
+          console.error('❌ Failed to bulk create tables. JSON Error:', errorData);
+          throw new Error(errorData.error || 'Failed to bulk create tables.');
+        } else {
+          const text = await response.text();
+          console.error('🧨 HTML Error Response:', text);
+          throw new Error('Server error (non-JSON). Check backend logs.');
+        }
+      }
+
+      const data = await response.json();
+      console.log('✅ Tables bulk created:', data);
+      return data;
+    } catch (error) {
+      console.error('🔥 Error in bulkCreateTables:', error.message);
+      throw error;
+    }
+  },
+
+  // Add tables
+  addTables: async (input) => {
+    const token = orgadminApi._getToken();
+
+    try {
+      let payload;
+
+      if (Array.isArray(input)) {
+        console.log("🎯 Input is an array of table names:", input);
+        const sanitizedTables = input
+          .map(num => (typeof num === "string" ? { number: num.trim() } : null))
+          .filter(table => table !== null);
+
+        if (sanitizedTables.length === 0) {
+          console.error("🚫 No valid table names in the array.");
+          throw new Error("No valid table names provided.");
+        }
+
+        payload = { tables: sanitizedTables };
+      } else if (input && typeof input === "object" && typeof input.number === "string") {
+        console.log("🎯 Input is a single table object:", input);
+        payload = { number: input.number.trim() };
+      } else {
+        console.error("🚨 Invalid input format:", input);
+        throw new Error("Input must be a table object or an array of table names.");
+      }
+
+      const apiUrl = `${API_URL}/tables`;
+      console.log("🌐 Sending POST request to:", apiUrl);
+      console.log("📤 Payload:", payload);
+
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const contentType = response.headers.get('content-type');
+
+      if (!response.ok) {
+        let errorDetails = {};
+        if (contentType && contentType.includes('application/json')) {
+          errorDetails = await response.json();
+        } else {
+          const text = await response.text();
+          console.error("🧨 HTML Error Response:", text);
+          throw new Error('Server returned non-JSON error.');
+        }
+
+        console.error("❌ Failed to add tables. Status:", response.status);
+        console.error("❌ Error details:", errorDetails);
+        throw new Error(errorDetails.error || 'Failed to add tables.');
+      }
+
+      const data = await response.json();
+      console.log("✅ Tables added successfully:", data);
+      return data;
+
+    } catch (error) {
+      console.error("🔥 Error in addTables:", error.message);
+      throw error;
+    }
+  },
+
+  // Delete tables
+  deleteTables: async (tableIds) => {
+    const token = orgadminApi._getToken();
+
+    try {
+      if (!Array.isArray(tableIds)) {
+        throw new Error("Input must be an array of table IDs");
+      }
+
+      console.log('🌐 Sending DELETE request to:', `${API_URL}/tables`);
+      const response = await fetch(`${API_URL}/tables`, {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        },
+        body: JSON.stringify({ table_ids: tableIds }),
+      });
+
+      const contentType = response.headers.get('content-type');
+
+      if (!response.ok) {
+        let errorDetails = {};
+        if (contentType && contentType.includes('application/json')) {
+          errorDetails = await response.json();
+        } else {
+          const text = await response.text();
+          console.error("🧨 HTML Error Response:", text);
+          throw new Error('Server returned non-JSON error.');
+        }
+
+        console.error('❌ Failed to delete tables. Status:', response.status);
+        console.error('❌ Error details:', errorDetails);
+        throw new Error(errorDetails.error || 'Failed to delete tables.');
+      }
+
+      const data = await response.json();
+      console.log('✅ Tables deleted:', data);
+      return data;
+    } catch (error) {
+      console.error('🔥 Error in deleteTables:', error.message);
+      throw error;
+    }
+  },
+
+  // Add a new staff member
+  createStaffMember: async (staffData) => {
+    const token = orgadminApi._getToken();
+    const url = 'https://qr-agent.onrender.com/api/organizations/staff'; // <-- Correct endpoint
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        },
+        body: JSON.stringify(staffData),
+      });
+      if (!response.ok) {
         const errorData = await response.json();
-        console.error('❌ Failed to bulk create tables. JSON Error:', errorData);
-        throw new Error(errorData.error || 'Failed to bulk create tables.');
-      } else {
-        const text = await response.text();
-        console.error('🧨 HTML Error Response:', text);
-        throw new Error('Server error (non-JSON). Check backend logs.');
+        throw new Error(errorData.error || 'Failed to create staff member.');
       }
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      throw error;
     }
-
-    const data = await response.json();
-    console.log('✅ Tables bulk created:', data);
-    return data;
-  } catch (error) {
-    console.error('🔥 Error in bulkCreateTables:', error.message);
-    throw error;
-  }
-},
-
-
-  
-// Add tables
-addTables: async (input) => {
-  const token = orgadminApi._getToken(); // Get the token
-
-  try {
-    let payload;
-
-    // Handle array of table names (["Table 1", "Table 2"])
-    if (Array.isArray(input)) {
-      console.log("🎯 Input is an array of table names:", input);
-      const sanitizedTables = input
-        .map(num => (typeof num === "string" ? { number: num.trim() } : null))
-        .filter(table => table !== null);
-
-      if (sanitizedTables.length === 0) {
-        console.error("🚫 No valid table names in the array.");
-        throw new Error("No valid table names provided.");
-      }
-
-      payload = { tables: sanitizedTables };
-    }
-
-    // Handle a single object like { number: "Table 7" }
-    else if (input && typeof input === "object" && typeof input.number === "string") {
-      console.log("🎯 Input is a single table object:", input);
-      payload = { number: input.number.trim() };
-    }
-
-    // Invalid input
-    else {
-      console.error("🚨 Invalid input format:", input);
-      throw new Error("Input must be a table object or an array of table names.");
-    }
-
-    // Send the request
-    const apiUrl = `${API_URL}/tables`;
-    console.log("🌐 Sending POST request to:", apiUrl);
-    console.log("📤 Payload:", payload);
-
-    const response = await fetch(apiUrl, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-        Accept: 'application/json',
-      },
-      body: JSON.stringify(payload),
-    });
-
-    const contentType = response.headers.get('content-type');
-
-    if (!response.ok) {
-      let errorDetails = {};
-      if (contentType && contentType.includes('application/json')) {
-        errorDetails = await response.json();
-      } else {
-        const text = await response.text();
-        console.error("🧨 HTML Error Response:", text);
-        throw new Error('Server returned non-JSON error.');
-      }
-
-      console.error("❌ Failed to add tables. Status:", response.status);
-      console.error("❌ Error details:", errorDetails);
-      throw new Error(errorDetails.error || 'Failed to add tables.');
-    }
-
-    const data = await response.json();
-    console.log("✅ Tables added successfully:", data);
-    return data;
-
-  } catch (error) {
-    console.error("🔥 Error in addTables:", error.message);
-    throw error;
-  }
-},
-
-
-
-// Delete tables
-deleteTables: async (tableIds) => {
-  const token = orgadminApi._getToken(); // Get the token
-
-  try {
-    if (!Array.isArray(tableIds)) {
-      throw new Error("Input must be an array of table IDs");
-    }
-
-    console.log('🌐 Sending DELETE request to:', `${API_URL}/tables`);
-    const response = await fetch(`${API_URL}/tables`, {
-      method: 'DELETE',
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-        Accept: 'application/json',
-      },
-      body: JSON.stringify({ table_ids: tableIds }),
-    });
-
-    const contentType = response.headers.get('content-type');
-
-    if (!response.ok) {
-      let errorDetails = {};
-      if (contentType && contentType.includes('application/json')) {
-        errorDetails = await response.json();
-      } else {
-        const text = await response.text();
-        console.error("🧨 HTML Error Response:", text);
-        throw new Error('Server returned non-JSON error.');
-      }
-
-      console.error('❌ Failed to delete tables. Status:', response.status);
-      console.error('❌ Error details:', errorDetails);
-      throw new Error(errorDetails.error || 'Failed to delete tables.');
-    }
-
-    const data = await response.json();
-    console.log('✅ Tables deleted:', data);
-    return data;
-  } catch (error) {
-    console.error('🔥 Error in deleteTables:', error.message);
-    throw error;
-  }
-},
-// // Add a new staff member
-// createStaffMember: async (staffData) => {
-//   const token = orgadminApi._getToken();
-//   try {
-//     // Decode token to get organization ID
-//     const decodedToken = jwtDecode(token);
-//     const organizationId = decodedToken.identity.org_id;
-
-//     // Prepare payload (no organization_id in body unless backend expects it)
-//     const payload = {
-//       ...staffData,
-//       // organization_id: organizationId, // REMOVE this line if not needed in body
-//     };
-
-//     // Use org_id in the URL as per backend requirement
-//     const url = `https://qr-agent.onrender.com/api/superadmin/organizations/${organizationId}/staff`;
-
-//     console.log('🌐 Sending POST request to:', url);
-//     const response = await fetch(url, {
-//       method: 'POST',
-//       headers: {
-//         Authorization: `Bearer ${token}`,
-//         'Content-Type': 'application/json',
-//         Accept: 'application/json',
-//       },
-//       body: JSON.stringify(payload),
-//     });
-
-//     if (!response.ok) {
-//       const errorData = await response.json();
-//       console.error('❌ Failed to create staff member. Response status:', response.status);
-//       console.error('❌ Failed to create staff member. Response data:', errorData);
-//       throw new Error(errorData.error || 'Failed to create staff member.');
-//     }
-
-//     const data = await response.json();
-//     console.log('✅ Staff member created:', data);
-//     return data;
-//   } catch (error) {
-//     console.error('🔥 Error in createStaffMember:', error.message);
-//     throw error;
-//   }
-// },
-
-createStaffMember: async (staffData) => {
-  const token = orgadminApi._getToken();
-  // Get org_id from localStorage (set by OrgAdminAuthContext)
-  const organizationId = localStorage.getItem('organization_id');
-  if (!organizationId) {
-    throw new Error('Organization ID not found.');
-  }
-  const url = `https://qr-agent.onrender.com/api/superadmin/organizations/${organizationId}/staff`;
-  try {
-    console.log('🌐 Sending POST request to:', url);
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-        Accept: 'application/json',
-      },
-      body: JSON.stringify(staffData),
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      console.error('❌ Failed to create staff member. Response status:', response.status);
-      console.error('❌ Failed to create staff member. Response data:', errorData);
-      throw new Error(errorData.error || 'Failed to create staff member.');
-    }
-
-    const data = await response.json();
-    console.log('✅ Staff member created:', data);
-    return data;
-  } catch (error) {
-    console.error('🔥 Error in createStaffMember:', error.message);
-    throw error;
-  }
-},
+  },
 };
 
