@@ -8,6 +8,7 @@ const WelcomePage = lazy(() => import('./pages/WelcomePage'));
 const ChatPage = lazy(() => import('./pages/ChatPage'));
 const MenuPage = lazy(() => import('./pages/MenuPage'));
 const OrderModePage = lazy(() => import('./pages/OrderModePage'));
+const JoinGroupPage = lazy(() => import('./pages/JoinGroupPage'));
 const PaymentPage = lazy(() => import('./pages/PaymentPage'));
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
 
@@ -40,6 +41,8 @@ export default function CustomerRouter() {
                 {/* Welcome Page */}
                 <Route path="/welcome" element={<WelcomePage />} />
 
+                <Route path="/join" element={<JoinGroupPage />} />
+                
                 {/* Order Mode Page */}
                 <Route path="/order-mode" element={<OrderModePage />} />
 
