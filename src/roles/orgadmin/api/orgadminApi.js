@@ -1,6 +1,6 @@
 import { jwtDecode } from 'jwt-decode';
 
-const BASE_URL = 'https://qr-agent.onrender.com/organizations';
+const BASE_URL = 'https://qr-agent.onrender.com//org-admin';
 const API_URL = 'https://qr-agent.onrender.com/api/organizations';
 
 export const orgadminApi = {

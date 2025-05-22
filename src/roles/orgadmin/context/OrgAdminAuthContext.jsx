@@ -14,39 +14,30 @@ export function OrgAdminAuthProvider({ children }) {
     if (token && token.split('.').length === 3) {
       try {
         const decodedToken = jwtDecode(token);
+        const user = decodedToken.identity || null;
+        setUser(user);
         const organizationId = decodedToken.identity?.org_id;
         if (organizationId) {
           localStorage.setItem('organization_id', organizationId);
         }
-        const fetchUser = async () => {
-          try {
-            const userData = await orgadminApi.getUserProfile();
-            setUser(userData);
-          } catch (err) {
-            setError(err.message);
-          } finally {
-            setLoading(false);
-          }
-        };
-        fetchUser();
       } catch (decodeError) {
         console.error('Failed to decode token:', decodeError);
         setError('Invalid token');
-        setLoading(false);
       }
-    } else {
-      setLoading(false);
     }
+    setLoading(false);
   }, []);
 
   const login = async (credentials) => {
     try {
-      const { token, user } = await orgadminApi.login(credentials);
+      const data = await orgadminApi.login(credentials);
+      const token = data.org_admin_token || data.token;
       localStorage.setItem('orgadmin_token1', token);
-      setUser(user);
+      let user = null;
       if (token && token.split('.').length === 3) {
         try {
           const decodedToken = jwtDecode(token);
+          user = decodedToken.identity || null;
           const organizationId = decodedToken.identity?.org_id;
           if (organizationId) {
             localStorage.setItem('organization_id', organizationId);
@@ -55,6 +46,7 @@ export function OrgAdminAuthProvider({ children }) {
           console.error('❌ Failed to decode token:', decodeError.message);
         }
       }
+      setUser(user);
     } catch (err) {
       throw new Error(err.message || 'Login failed');
     }

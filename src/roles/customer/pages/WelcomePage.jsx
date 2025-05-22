@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useUser } from '../context/UserContext';
 import { useOTPVerify } from '../hooks/useOTPVerify';
 import { ChefHat, MessageSquare, Phone, User } from 'lucide-react';
+import { customerApi } from '../api/customerApi';
 
 const WelcomePage = () => {
+  const location = useLocation();
   const navigate = useNavigate();
-  const { sendOTP, verifyOTP, createGroup } = useUser();
+  const { sendOTP, verifyOTP, createGroup, joinGroup, organizationId } = useUser();
   const otpVerify = useOTPVerify();
   
   const [step, setStep] = useState('welcome'); // welcome, verification, party-size, qr-code
@@ -17,12 +19,30 @@ const WelcomePage = () => {
   });
   const [partySize, setPartySize] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [qrImage, setQrImage] = useState(null);
+  const [qrUrl, setQrUrl] = useState(null);
   
   useEffect(() => {
-    if (!sessionStorage.getItem('table_id')) {
+    // Extract query params
+    const params = new URLSearchParams(location.search);
+    const orgId = params.get('org_id');
+    const tableId = params.get('table_id');
+
+    // Store in localStorage if present
+    if (orgId) {
+      localStorage.setItem('organization_id', orgId);
+    }
+    if (tableId) {
+      localStorage.setItem('table_id', tableId);
+      sessionStorage.setItem('table_id', tableId); // If you want to keep sessionStorage logic
+    }
+
+    // Fallback: set default if not present
+    if (!localStorage.getItem('table_id')) {
+      localStorage.setItem('table_id', 'table_default');
       sessionStorage.setItem('table_id', 'table_default');
     }
-  }, []);
+  }, [location.search]);
   
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -70,13 +90,31 @@ const WelcomePage = () => {
     setIsLoading(true);
     try {
       if (size === 1) {
-        // For single customer, go straight to order mode
         navigate('/customer/order-mode');
       } else {
-        const tableId = sessionStorage.getItem('table_id') || 'table_default';
-        const result = await createGroup(tableId, formData.name, formData.phone, size);
-        if (result && result.success) {
-          setStep('qr-code'); // Show QR for group
+        const tableIdRaw = localStorage.getItem('table_id');
+        const orgId = organizationId || localStorage.getItem('organization_id');
+        if (!orgId || !tableIdRaw) {
+          alert('Organization ID or Table ID not found.');
+          setIsLoading(false);
+          return;
+        }
+        // If table_id is a number, use it directly
+        let tableId = Number(tableIdRaw);
+        if (isNaN(tableId)) {
+          // fallback: try to look up by table number (legacy QR codes)
+          tableId = await customerApi.getTableIdByNumber(tableIdRaw, orgId);
+        }
+        if (!tableId) {
+          alert('Table not found. Please check your link or contact staff.');
+          setIsLoading(false);
+          return;
+        }
+        const result = await createGroup(tableId, orgId);
+        if (result && result.group_id) {
+          setQrImage(result.qr_image_base64); // <-- store the base64 image
+          setQrUrl(result.qr_url);            // <-- store the join URL
+          setStep('qr-code');
         } else {
           alert('Failed to create group. Please try again.');
         }
@@ -84,6 +122,23 @@ const WelcomePage = () => {
     } catch (error) {
       console.error('Error creating group:', error.message);
       alert('An unexpected error occurred. Please try again later.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  const handleJoinGroup = async (groupId, name) => {
+    setIsLoading(true);
+    try {
+      const result = await joinGroup(groupId, name);
+      if (result && result.member_token) {
+        // Optionally store member_token
+        navigate('/customer/order-mode');
+      } else {
+        alert('Failed to join group. Please try again.');
+      }
+    } catch (error) {
+      alert(error.message || 'An unexpected error occurred. Please try again later.');
     } finally {
       setIsLoading(false);
     }
@@ -202,6 +257,15 @@ const WelcomePage = () => {
               ) : null}
               Continue
             </motion.button>
+
+            {/* Add this button in your 'welcome' step UI */}
+            <button
+              type="button"
+              className="btn-secondary w-full mt-2"
+              onClick={() => setStep('join-group')}
+            >
+              Join a Group
+            </button>
           </motion.form>
         </motion.div>
       )}
@@ -361,10 +425,17 @@ const WelcomePage = () => {
             className="flex justify-center mb-6"
           >
             <div className="bg-white p-4 rounded-lg shadow-md border-4 border-[#4C4C9D]">
-              {/* This would be a real QR code in production */}
-              <div className="w-48 h-48 bg-gray-200 flex items-center justify-center">
-                <MessageSquare size={64} className="text-[#4C4C9D]" />
-              </div>
+              {qrImage ? (
+                <img
+                  src={`data:image/png;base64,${qrImage}`}
+                  alt="Group QR Code"
+                  className="w-48 h-48"
+                />
+              ) : (
+                <div className="w-48 h-48 bg-gray-200 flex items-center justify-center">
+                  <MessageSquare size={64} className="text-[#4C4C9D]" />
+                </div>
+              )}
             </div>
           </motion.div>
           
@@ -375,6 +446,13 @@ const WelcomePage = () => {
             📱 Share this QR with your squad so they can join your table.
           </motion.p>
           
+          {qrUrl && (
+  <div className="mt-4 text-center break-all">
+    <span className="text-xs text-gray-500">Share Link:</span>
+    <div className="text-sm">{qrUrl}</div>
+  </div>
+)}
+
           <motion.button
             variants={itemVariants}
             onClick={handleFinish}
@@ -382,6 +460,38 @@ const WelcomePage = () => {
           >
             Continue to Chat
           </motion.button>
+        </motion.div>
+      )}
+      
+      {step === 'join-group' && (
+        <motion.div 
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+          exit="exit"
+          className="w-full max-w-md card glow-ring bg-[#EEF1F4]"
+        >
+          <motion.h1 className="text-2xl font-bold text-center mb-4">
+            Join a Group
+          </motion.h1>
+          <form
+            onSubmit={async (e) => {
+              e.preventDefault();
+              const groupId = e.target.groupId.value;
+              const name = e.target.name.value;
+              await handleJoinGroup(groupId, name);
+            }}
+            className="space-y-4"
+          >
+            <input name="groupId" placeholder="Group ID" required className="input-field" />
+            <input name="name" placeholder="Your Name" required className="input-field" />
+            <button type="submit" className="btn-primary w-full" disabled={isLoading}>
+              {isLoading ? 'Joining...' : 'Join Group'}
+            </button>
+          </form>
+          <button className="btn-secondary w-full mt-2" onClick={() => setStep('welcome')}>
+            Back
+          </button>
         </motion.div>
       )}
     </div>

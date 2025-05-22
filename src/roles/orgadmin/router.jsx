@@ -10,7 +10,7 @@ import CreateStaffPage from './pages/CreateStaffPage';
 
 
 function ProtectedRoute({ children }) {
-  const token = localStorage.getItem('orgadmin_token');
+  const token = localStorage.getItem('orgadmin_token1');
   if (!token) {
     return <Navigate to="/orgadmin/login" replace />;
   }
