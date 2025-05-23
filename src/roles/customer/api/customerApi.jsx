@@ -3,7 +3,8 @@ const API_URL = 'https://qr-agent.onrender.com/api';
 export const customerApi = {
   // Get Menu
   getMenu: async () => {
-    const response = await fetch(`${BASE_URL}/menu?organization_id=1`, {
+    const orgId = localStorage.getItem('organization_id');
+    const response = await fetch(`${BASE_URL}/menu?organization_id=${orgId}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -54,21 +55,19 @@ export const customerApi = {
 
   // Add Item to Cart
   addItemToCart: async (cartItem) => {
-    try {
-      const response = await fetch(`${BASE_URL}/cart`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('jwt')}`,
-        },
-        body: JSON.stringify(cartItem),
-      });
-      if (!response.ok) throw new Error((await response.json()).error || 'Failed to add item to cart');
-      return response.json();
-    } catch (err) {
-      console.error('Error adding item to cart:', err.message);
-      throw err;
-    }
+    const orgId = localStorage.getItem('organization_id');
+    const tableId = localStorage.getItem('table_id');
+    const payload = { ...cartItem, organization_id: orgId, table_id: tableId };
+    const response = await fetch(`${BASE_URL}/cart`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${localStorage.getItem('jwt')}`,
+      },
+      body: JSON.stringify(payload),
+    });
+    if (!response.ok) throw new Error((await response.json()).error || 'Failed to add item to cart');
+    return response.json();
   },
 
   // View Cart

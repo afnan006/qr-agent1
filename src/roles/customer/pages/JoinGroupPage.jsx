@@ -35,6 +35,7 @@ const JoinGroupPage = () => {
       const result = await customerApi.joinGroup(groupId, formData.name);
       if (result && result.member_token) {
         localStorage.setItem('member_token', result.member_token);
+        localStorage.setItem('customer_name', formData.name);
         navigate('/customer/order-mode');
       }
     } catch (err) {

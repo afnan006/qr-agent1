@@ -23,25 +23,11 @@ const WelcomePage = () => {
   const [qrUrl, setQrUrl] = useState(null);
   
   useEffect(() => {
-    // Extract query params
     const params = new URLSearchParams(location.search);
     const orgId = params.get('org_id');
     const tableId = params.get('table_id');
-
-    // Store in localStorage if present
-    if (orgId) {
-      localStorage.setItem('organization_id', orgId);
-    }
-    if (tableId) {
-      localStorage.setItem('table_id', tableId);
-      sessionStorage.setItem('table_id', tableId); // If you want to keep sessionStorage logic
-    }
-
-    // Fallback: set default if not present
-    if (!localStorage.getItem('table_id')) {
-      localStorage.setItem('table_id', 'table_default');
-      sessionStorage.setItem('table_id', 'table_default');
-    }
+    if (orgId) localStorage.setItem('organization_id', orgId);
+    if (tableId) localStorage.setItem('table_id', tableId);
   }, [location.search]);
   
   const handleInputChange = (e) => {

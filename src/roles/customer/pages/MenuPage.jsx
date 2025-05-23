@@ -4,6 +4,7 @@ import { ChevronLeft, ShoppingCart, X, Filter, Search } from 'lucide-react';
 import MenuCarousel from '../components/MenuCards/MenuCarousel';
 import { customerApi } from '../api/customerApi';
 import { useCart } from '../context/CartContext';
+import CartSlideOver from '../components/PaymentPanel/CartSlideOver';
 
 const MenuPage = () => {
   const [menuItems, setMenuItems] = useState([]);
@@ -158,19 +159,16 @@ const MenuPage = () => {
         </motion.h1>
         <div className="relative">
           <motion.button
-            whileTap={{ scale: 0.9 }}
-            className="p-2 rounded-full hover:bg-purple-50 transition-colors relative"
             onClick={toggleCart}
+            className="relative p-2 rounded-full bg-[#4C4C9D] text-white"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
           >
-            <ShoppingCart className="text-purple-700" />
-            {cart.length > 0 && (
-              <motion.span
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                className="absolute -top-1 -right-1 bg-purple-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center"
-              >
-                {cart.reduce((total, item) => total + item.quantity, 0)}
-              </motion.span>
+            <ShoppingCart size={20} />
+            {cart.items.length > 0 && (
+              <span className="absolute -top-1 -right-1 bg-red-500 text-white w-5 h-5 rounded-full text-xs flex items-center justify-center">
+                {cart.items.reduce((total, item) => total + item.quantity, 0)}
+              </span>
             )}
           </motion.button>
         </div>
@@ -282,6 +280,7 @@ const MenuPage = () => {
           </motion.div>
         )}
       </div>
+      <CartSlideOver />
     </motion.div>
   );
 };
