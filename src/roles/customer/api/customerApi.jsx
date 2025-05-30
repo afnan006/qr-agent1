@@ -1,5 +1,6 @@
 const BASE_URL = 'https://qr-agent.onrender.com/api/customer';
 const API_URL = 'https://qr-agent.onrender.com/api';
+
 export const customerApi = {
   // Get Menu
   getMenu: async () => {
@@ -14,7 +15,6 @@ export const customerApi = {
     if (!response.ok) throw new Error((await response.json()).error || 'Failed to fetch menu');
     return response.json();
   },
-  
 
   // Place Order
   placeOrder: async (orderData) => {
@@ -57,53 +57,111 @@ export const customerApi = {
   addItemToCart: async (cartItem) => {
     const orgId = localStorage.getItem('organization_id');
     const tableId = localStorage.getItem('table_id');
-    const payload = { ...cartItem, organization_id: orgId, table_id: tableId };
+    const groupId = localStorage.getItem('group_id');
+    const memberToken = localStorage.getItem('member_token');
+    const customerName = localStorage.getItem('customer_name') || 'Guest';
+    
+    const payload = {
+      table_id: Number(tableId),
+      organization_id: Number(orgId),
+      menu_item_id: cartItem.id,
+      quantity: cartItem.quantity,
+      customer_name: customerName, // Include customer name with each item
+    };
+
+    if (groupId && memberToken) {
+      payload.group_id = Number(groupId);
+      payload.member_token = memberToken;
+    }
+
+    const headers = {
+      'Content-Type': 'application/json',
+    };
+
+    const jwt = localStorage.getItem('jwt');
+    if (jwt && !(groupId && memberToken)) {
+      headers['Authorization'] = `Bearer ${jwt}`;
+    }
+
     const response = await fetch(`${BASE_URL}/cart`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${localStorage.getItem('jwt')}`,
-      },
+      mode: 'cors',
+      headers,
       body: JSON.stringify(payload),
     });
     if (!response.ok) throw new Error((await response.json()).error || 'Failed to add item to cart');
     return response.json();
   },
+//view cart
+  viewCart: async (isGroupCart = false) => {
+  const groupId = localStorage.getItem('group_id');
+  const memberToken = localStorage.getItem('member_token');
+  
+  let url = `${BASE_URL}/cart`;
+  const headers = {
+    'Content-Type': 'application/json',
+  };
 
-  // View Cart
-  viewCart: async () => {
-    try {
-      const response = await fetch(`${BASE_URL}/cart`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('jwt')}`,
-        },
-      });
-      if (!response.ok) throw new Error((await response.json()).error || 'Failed to fetch cart');
-      return response.json();
-    } catch (err) {
-      console.error('Error fetching cart:', err.message);
-      throw err;
+  // For group cart
+  if (isGroupCart && groupId && memberToken) {
+    url += `?group_id=${groupId}&member_token=${memberToken}`;
+  } 
+  // For personal cart in group
+  else if (groupId && memberToken) {
+    url += `?group_id=${groupId}&member_token=${memberToken}&personal=true`;
+  } 
+  // For personal cart (individual)
+  else {
+    const jwt = localStorage.getItem('jwt');
+    if (jwt) {
+      headers['Authorization'] = `Bearer ${jwt}`;
     }
-  },
+  }
+
+  const response = await fetch(url, {
+    method: 'GET',
+    mode: 'cors',
+    headers,
+  });
+  
+  if (!response.ok) throw new Error((await response.json()).error || 'Failed to fetch cart');
+  return response.json();
+},
 
   // Remove Item from Cart
   removeCartItem: async (itemId) => {
-    try {
-      const response = await fetch(`${BASE_URL}/cart/${itemId}`, {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('jwt')}`,
-        },
-      });
-      if (!response.ok) throw new Error((await response.json()).error || 'Failed to remove item from cart');
-      return response.json();
-    } catch (err) {
-      console.error('Error removing item from cart:', err.message);
-      throw err;
+    const groupId = localStorage.getItem('group_id');
+    const memberToken = localStorage.getItem('member_token');
+    const jwt = localStorage.getItem('jwt');
+    let url = `${BASE_URL}/cart/${itemId}`;
+    const headers = {
+      'Content-Type': 'application/json',
+    };
+
+    // If group member, add group_id and member_token as query params, do NOT send JWT
+    if (groupId && memberToken) {
+      url += `?group_id=${groupId}&member_token=${memberToken}`;
+    } else if (jwt) {
+      headers['Authorization'] = `Bearer ${jwt}`;
     }
+
+    const response = await fetch(url, {
+      method: 'DELETE',
+      mode: 'cors',
+      headers,
+    });
+
+    if (!response.ok) {
+      let errorMsg = 'Failed to remove item from cart';
+      try {
+        const errorData = await response.clone().json();
+        errorMsg = errorData.error || errorMsg;
+      } catch {
+        errorMsg = response.statusText || errorMsg;
+      }
+      throw new Error(errorMsg);
+    }
+    return response.json();
   },
 
   // Call Waiter
@@ -125,11 +183,10 @@ export const customerApi = {
     }
   },
 
-  // Create Group (NEW: matches backend spec)
+  // Create Group
   createGroup: async (tableId, organizationId) => {
     try {
       const jwt = localStorage.getItem('jwt');
-      // Convert to numbers
       const payload = {
         table_id: Number(tableId),
         organization_id: Number(organizationId),
@@ -143,7 +200,6 @@ export const customerApi = {
         body: JSON.stringify(payload),
       });
       if (!response.ok) {
-        // Try to parse error as JSON, fallback to text
         let errorMsg = 'Failed to create group';
         try {
           const errorData = await response.json();
@@ -160,7 +216,7 @@ export const customerApi = {
     }
   },
 
-  // Join Group (NEW: matches backend spec)
+  // Join Group
   joinGroup: async (groupId, name) => {
     try {
       const response = await fetch(`${API_URL}/group/join`, {
@@ -181,7 +237,7 @@ export const customerApi = {
     }
   },
 
-  // Check Group Status (optional, matches backend spec)
+  // Check Group Status
   checkGroupStatus: async (groupId, memberToken) => {
     try {
       const jwt = localStorage.getItem('jwt');
@@ -200,29 +256,75 @@ export const customerApi = {
     }
   },
 
-  // New method: initializeGroup
+  // View Group Cart
+  viewGroupCart: async () => {
+    const groupId = localStorage.getItem('group_id');
+    const memberToken = localStorage.getItem('member_token');
+    if (!groupId || !memberToken) throw new Error('Not in a group');
+    const url = `${BASE_URL}/cart?group_id=${groupId}&member_token=${memberToken}`;
+    const headers = {
+      'Content-Type': 'application/json',
+    };
+    const response = await fetch(url, {
+      method: 'GET',
+      mode: 'cors',
+      headers,
+    });
+    if (!response.ok) throw new Error((await response.json()).error || 'Failed to fetch group cart');
+    return response.json();
+  },
+
+  // View Personal Cart
+  viewPersonalCart: async () => {
+    const groupId = localStorage.getItem('group_id');
+    const memberToken = localStorage.getItem('member_token');
+    if (!groupId || !memberToken) throw new Error('Not in a group');
+    const url = `${BASE_URL}/cart?group_id=${groupId}&member_token=${memberToken}&personal=true`;
+    const headers = {
+      'Content-Type': 'application/json',
+    };
+    const response = await fetch(url, {
+      method: 'GET',
+      mode: 'cors',
+      headers,
+    });
+    if (!response.ok) throw new Error((await response.json()).error || 'Failed to fetch personal cart');
+    return response.json();
+  },
+
+  // Initialize Group
   initializeGroup: async () => {
     try {
-      // Get the table string from storage (e.g., "Table12")
-      const tableString = localStorage.getItem('table_id') || 'table_default';
-
-
-
-      // Now use tableId as a number
-      const orgId = organizationId || localStorage.getItem('organization_id');
+      const tableId = localStorage.getItem('table_id');
+      const orgId = localStorage.getItem('organization_id');
       if (!orgId || !tableId) {
-        alert('Organization ID or Table ID not found.');
-        setIsLoading(false);
-        return;
+        throw new Error('Organization ID or Table ID not found');
       }
-      const result = await createGroup(tableId, orgId);
+      // Example: after successful group creation
+      const result = await customerApi.createGroup(tableId, orgId);
+      // result should contain { group_id, member_token }
+      if (result && result.group_id && result.member_token) {
+        localStorage.setItem('group_id', result.group_id);
+        localStorage.setItem('member_token', result.member_token);
+        if (result.customer_name) {
+          localStorage.setItem('customer_name', result.customer_name);
+        }
+      } else if (result && result.group_id) {
+        // If backend does not return member_token, join as member
+        const customerName = localStorage.getItem('customer_name') || 'Guest';
+        const joinRes = await customerApi.joinGroup(result.group_id, customerName);
+        if (joinRes && joinRes.member_token) {
+          localStorage.setItem('group_id', result.group_id);
+          localStorage.setItem('member_token', joinRes.member_token);
+          if (joinRes.customer_name) {
+            localStorage.setItem('customer_name', joinRes.customer_name);
+          }
+        }
+      }
       return result;
     } catch (err) {
       console.error('Error initializing group:', err.message);
       throw err;
     }
   },
-
-
 };
-

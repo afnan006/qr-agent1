@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, CheckCircle, Building2, Mail, KeyRound, MapPin } from 'lucide-react';
 import { superadminApi } from '../api/superadminApi';
 import { useNavigate } from 'react-router-dom';
+import GooglePlacesAutocomplete from 'react-google-places-autocomplete';
 
 function CreateOrgModal({ isOpen, onClose }) {
   const navigate = useNavigate();
@@ -11,6 +12,9 @@ function CreateOrgModal({ isOpen, onClose }) {
     admin_email: '',
     admin_password: '',
     location: '',
+    lat: null,
+    lng: null,
+    maps_link: '',
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -102,7 +106,7 @@ function CreateOrgModal({ isOpen, onClose }) {
                         value={formData.name}
                         onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                         className="w-full pl-10 pr-3 py-3 bg-beige-100 border border-beige-300 rounded-lg focus:ring-2 focus:ring-teal-300 focus:border-teal-300 focus:bg-beige-50 transition-all"
-                        placeholder="Acme Corporation"
+                        placeholder="Sri Sri Cafe"
                         required
                       />
                     </div>
@@ -169,13 +173,41 @@ function CreateOrgModal({ isOpen, onClose }) {
                       <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                         <MapPin size={18} className="text-teal-500" />
                       </div>
-                      <input
-                        type="text"
-                        value={formData.location}
-                        onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                        className="w-full pl-10 pr-3 py-3 bg-beige-100 border border-beige-300 rounded-lg focus:ring-2 focus:ring-teal-300 focus:border-teal-300 focus:bg-beige-50 transition-all"
-                        placeholder="123 Main St, City"
-                      />
+                      <GooglePlacesAutocomplete
+                            value={formData.location}
+                            onChange={address => setFormData({ ...formData, location: address })}
+                            onSelect={({ address, lat, lng }) => {
+                              const mapsLink = lat && lng
+                                ? `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`
+                                : '';
+                              console.log('Selected:', { address, lat, lng, mapsLink }); // <-- log here
+                              setFormData(prev => ({
+                                ...prev,
+                                location: address,
+                                lat,
+                                lng,
+                                maps_link: mapsLink,
+                              }));
+                            }}
+                            className="w-full pl-10 pr-3 py-3 bg-beige-100 border border-beige-300 rounded-lg focus:ring-2 focus:ring-teal-300 focus:border-teal-300 focus:bg-beige-50 transition-all"
+                            placeholder="123 Main St, City"
+                            debounce={500}
+                            apiKey={import.meta.env.VITE_GOOGLE_MAPS_API_KEY}
+                          />
+                      {/* Show Google Maps Link if available */}
+                      {formData.maps_link && (
+                        <div className="mt-2 flex items-center gap-2">
+                          <MapPin size={16} className="text-teal-600" />
+                          <a
+                            href={formData.maps_link}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-teal-700 underline hover:text-teal-900 transition-colors"
+                          >
+                            View on Google Maps
+                          </a>
+                        </div>
+                      )}
                     </div>
                   </motion.div>
                 </div>

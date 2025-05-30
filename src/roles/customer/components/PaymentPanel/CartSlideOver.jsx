@@ -1,41 +1,48 @@
-// // // //---------------------------ORIGINAL----------------------------
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Plus, Minus, Trash2 } from 'lucide-react';
+import { X, Trash2 } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
-import { customerApi } from '../../api/customerApi';
-
+import { useRef } from 'react';
 export default function CartSlideOver() {
-  const { cart, isCartOpen, toggleCart, updateQuantity, removeFromCart } = useCart();
-  const [showPayment, setShowPayment] = useState(false);
-  const [confirmation, setConfirmation] = useState(null); // Tracks item for confirmation
+  const {
+    cart = { items: [], total: 0 },
+    personalCart = { items: [], total: 0 },
+    groupCart = { items: [], total: 0 },
+    isCartOpen,
+    toggleCart,
+    removeFromCart,
+    fetchCart,
+    menuMap = {},
+    isMenuLoading,
+    cartType,
+    setCartType,
+    isInGroup,
+  } = useCart();
 
-  const handleCheckout = () => {
-    toggleCart();
-    setShowPayment(true);
-  };
+  useEffect(() => {
+    fetchCart(cartType);
+  }, [cartType, isCartOpen, fetchCart]);
 
-  const handleRemoveItem = async (itemId) => {
-    if (!window.confirm('Are you sure you want to remove this item?')) return;
-
-    try {
-      await customerApi.removeCartItem(itemId); // Call API to remove item
-      removeFromCart(itemId); // Update local state
-    } catch (err) {
-      alert(err.message || 'Failed to remove item from cart.');
-    }
-  };
+  let itemsToShow = [];
+  let totalToShow = 0;
+  
+  if (cartType === 'group') {
+    itemsToShow = groupCart?.items || [];
+    totalToShow = groupCart?.total || 0;
+  } else {
+    itemsToShow = isInGroup ? (personalCart?.items || []) : (cart?.items || []);
+    totalToShow = isInGroup ? (personalCart?.total || 0) : (cart?.total || 0);
+  }
 
   const handlePlaceOrder = async () => {
-    if (cart.items.length === 0) return;
+    if (!itemsToShow || itemsToShow.length === 0) return;
     try {
-      // Get customer name (from localStorage or context, adjust as needed)
       const tableId = localStorage.getItem('table_id');
       const organizationId = localStorage.getItem('organization_id');
       const groupId = localStorage.getItem('group_id');
       const memberToken = localStorage.getItem('member_token');
       const customerName = localStorage.getItem('customer_name') || 'Guest';
-
+      
       let payload = {
         table_id: Number(tableId),
         organization_id: Number(organizationId),
@@ -43,40 +50,26 @@ export default function CartSlideOver() {
       };
 
       if (groupId && memberToken) {
-        // Group order: do NOT send items, let backend use group cart
         payload.group_id = Number(groupId);
         payload.member_token = memberToken;
-      } else {
-        // Solo order: send items array
-        payload.items = cart.items.map(item => ({
-          id: item.id,
-          name: item.name,
-          quantity: item.quantity,
-        }));
       }
 
-      // Call the API
-      const result = await customerApi.placeOrder(payload);
-
-      // Optionally clear cart or show success
+      await customerApi.placeOrder(payload);
       alert('Order placed successfully!');
       toggleCart();
-      // Optionally: clearCart();
     } catch (err) {
       alert(err.message || 'Failed to place order.');
     }
   };
 
-  const slideVariants = {
-    hidden: { x: '100%', opacity: 0 },
-    visible: { x: 0, opacity: 1, transition: { type: 'spring', damping: 25 } },
-    exit: { x: '100%', opacity: 0, transition: { duration: 0.3 } },
-  };
-
-  const overlayVariants = {
-    hidden: { opacity: 0 },
-    visible: { opacity: 1 },
-    exit: { opacity: 0 },
+  const handleRemoveItem = async (itemId) => {
+    if (!window.confirm('Are you sure you want to remove this item?')) return;
+    try {
+      await removeFromCart(itemId, cartType);
+      await fetchCart(cartType);
+    } catch (err) {
+      alert(err.message || 'Failed to remove item from cart.');
+    }
   };
 
   return (
@@ -84,7 +77,11 @@ export default function CartSlideOver() {
       {isCartOpen && (
         <>
           <motion.div
-            variants={overlayVariants}
+            variants={{
+              hidden: { opacity: 0 },
+              visible: { opacity: 1 },
+              exit: { opacity: 0 },
+            }}
             initial="hidden"
             animate="visible"
             exit="exit"
@@ -92,7 +89,11 @@ export default function CartSlideOver() {
             onClick={toggleCart}
           />
           <motion.div
-            variants={slideVariants}
+            variants={{
+              hidden: { x: '100%', opacity: 0 },
+              visible: { x: 0, opacity: 1, transition: { type: 'spring', damping: 25 } },
+              exit: { x: '100%', opacity: 0, transition: { duration: 0.3 } },
+            }}
             initial="hidden"
             animate="visible"
             exit="exit"
@@ -101,15 +102,40 @@ export default function CartSlideOver() {
             <div className="flex flex-col h-full">
               <div className="flex justify-between items-center p-4 border-b">
                 <h2 className="text-xl font-bold">Your Cart</h2>
-                <button
-                  onClick={toggleCart}
-                  className="p-1 rounded-full hover:bg-gray-100"
-                >
+                <button onClick={toggleCart} className="p-1 rounded-full hover:bg-gray-100">
                   <X size={20} />
                 </button>
               </div>
+              
+              <div className="flex gap-2 mb-2 p-4">
+                <button
+                  className={`px-4 py-2 rounded-full font-semibold transition-colors ${
+                    cartType === 'personal'
+                      ? 'bg-[#4C4C9D] text-white shadow'
+                      : 'bg-gray-100 text-[#4C4C9D] hover:bg-gray-200'
+                  }`}
+                  onClick={() => setCartType('personal')}
+                >
+                  My Cart
+                </button>
+                <button
+                  className={`px-4 py-2 rounded-full font-semibold transition-colors ${
+                    cartType === 'group'
+                      ? 'bg-[#4C4C9D] text-white shadow'
+                      : 'bg-gray-100 text-[#4C4C9D] hover:bg-gray-200'
+                  }`}
+                  onClick={() => setCartType('group')}
+                >
+                  Group Cart
+                </button>
+              </div>
+
               <div className="flex-1 overflow-y-auto p-4">
-                {cart.items.length === 0 ? (
+                {isMenuLoading ? (
+                  <div className="h-full flex flex-col items-center justify-center text-gray-400">
+                    <p>Loading...</p>
+                  </div>
+                ) : !itemsToShow || itemsToShow.length === 0 ? (
                   <div className="h-full flex flex-col items-center justify-center text-gray-400">
                     <div className="w-16 h-16 border-2 border-gray-300 rounded-full flex items-center justify-center mb-4">
                       <Trash2 size={24} />
@@ -118,55 +144,60 @@ export default function CartSlideOver() {
                   </div>
                 ) : (
                   <div className="divide-y">
-                    {cart.items.map((item) => (
-                      <div key={item.id} className="py-4 flex">
-                        <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center mr-3">
-                          <span className="text-xl">{item.emoji}</span>
-                        </div>
-                        <div className="flex-1">
-                          <div className="flex justify-between">
-                            <h3 className="font-medium">{item.name}</h3>
-                            <span className="font-mono">${(item.price * item.quantity).toFixed(2)}</span>
+                    {itemsToShow.map((item) => {
+                      const menuItem = menuMap[String(item.menu_item_id)] || menuMap[String(item.id)];
+                      return (
+                        <div key={item.id} className="py-4 flex">
+                          <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center mr-3">
+                            <span className="text-xl">{menuItem?.emoji || '🍽️'}</span>
                           </div>
-                          <div className="flex items-center justify-between mt-2">
-                            <div className="flex items-center">
-                              <button
-                                onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                                className="p-1 rounded-full bg-gray-100 hover:bg-gray-200"
-                              >
-                                <Minus size={14} />
-                              </button>
+                          <div className="flex-1">
+                            <div className="flex justify-between">
+                              <div>
+                                <h3 className="font-medium">
+                                  {menuItem ? menuItem.name : `Unknown item (${item.menu_item_id || item.id})`}
+                                </h3>
+                                {cartType === 'group' && item.customer_name && (
+                                  <p className="text-sm text-gray-500">Ordered by: {item.customer_name}</p>
+                                )}
+                              </div>
+                              <span className="font-mono">
+                                {typeof menuItem?.price === 'number'
+                                  ? `₹${(menuItem.price * item.quantity).toFixed(2)}`
+                                  : '--'}
+                              </span>
+                            </div>
+                            <div className="flex items-center justify-between mt-2">
                               <span className="mx-2 w-6 text-center">{item.quantity}</span>
                               <button
-                                onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                                className="p-1 rounded-full bg-gray-100 hover:bg-gray-200"
+                                className="ml-2 text-red-500 hover:text-red-700"
+                                onClick={() => handleRemoveItem(item.id)}
                               >
-                                <Plus size={14} />
+                                <Trash2 size={18} />
                               </button>
                             </div>
-                            <button
-                              onClick={() => handleRemoveItem(item.id)}
-                              className="text-red-500 p-1 rounded-full hover:bg-red-50"
-                            >
-                              <Trash2 size={16} />
-                            </button>
                           </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
               </div>
-              <div className="border-t p-4">
-                <div className="flex justify-between mb-2">
-                  <span>Subtotal</span>
-                  <span className="font-mono">${cart.total.toFixed(2)}</span>
+
+              <div className="p-4 border-t">
+                <div className="flex justify-between items-center mb-4">
+                  <span className="font-semibold">Subtotal</span>
+                  <span className="font-bold text-lg">
+                    {typeof totalToShow === 'number'
+                      ? `₹${totalToShow.toFixed(2)}`
+                      : '--'}
+                  </span>
                 </div>
                 <button
                   onClick={handlePlaceOrder}
-                  disabled={cart.items.length === 0}
+                  disabled={!itemsToShow || itemsToShow.length === 0}
                   className={`w-full py-3 rounded-lg text-white font-medium ${
-                    cart.items.length === 0 ? 'bg-gray-300' : 'bg-[#4C4C9D]'
+                    !itemsToShow || itemsToShow.length === 0 ? 'bg-gray-300' : 'bg-[#4C4C9D]'
                   }`}
                 >
                   Place Order

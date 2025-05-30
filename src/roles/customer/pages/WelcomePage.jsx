@@ -85,10 +85,8 @@ const WelcomePage = () => {
           setIsLoading(false);
           return;
         }
-        // If table_id is a number, use it directly
         let tableId = Number(tableIdRaw);
         if (isNaN(tableId)) {
-          // fallback: try to look up by table number (legacy QR codes)
           tableId = await customerApi.getTableIdByNumber(tableIdRaw, orgId);
         }
         if (!tableId) {
@@ -96,13 +94,31 @@ const WelcomePage = () => {
           setIsLoading(false);
           return;
         }
-        const result = await createGroup(tableId, orgId);
-        if (result && result.group_id) {
-          setQrImage(result.qr_image_base64); // <-- store the base64 image
-          setQrUrl(result.qr_url);            // <-- store the join URL
-          setStep('qr-code');
-        } else {
-          alert('Failed to create group. Please try again.');
+        const customerName = localStorage.getItem('customer_name') || 'Guest';
+        const result = await customerApi.createGroup(tableId, orgId);
+        if (result && result.group_id && result.member_token) {
+          localStorage.setItem('group_id', result.group_id);
+          localStorage.setItem('member_token', result.member_token);
+          if (result.customer_name) {
+            localStorage.setItem('customer_name', result.customer_name);
+          }
+          // If backend returns QR image or URL, set them here:
+          if (result.qr_image) setQrImage(result.qr_image);
+          if (result.qr_url) setQrUrl(result.qr_url);
+          setStep('qr-code'); // <-- THIS IS THE KEY LINE
+        } else if (result && result.group_id) {
+          const joinRes = await customerApi.joinGroup(result.group_id, customerName);
+          if (joinRes && joinRes.member_token) {
+            localStorage.setItem('group_id', result.group_id);
+            localStorage.setItem('member_token', joinRes.member_token);
+            if (joinRes.customer_name) {
+              localStorage.setItem('customer_name', joinRes.customer_name);
+            }
+            // If backend returns QR image or URL, set them here:
+            if (joinRes.qr_image) setQrImage(joinRes.qr_image);
+            if (joinRes.qr_url) setQrUrl(joinRes.qr_url);
+            setStep('qr-code'); // <-- THIS IS THE KEY LINE
+          }
         }
       }
     } catch (error) {

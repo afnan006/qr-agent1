@@ -8,6 +8,8 @@ import {
   ArrowUpTrayIcon as UploadIcon,
   CheckCircleIcon,
   XCircleIcon,
+  MagnifyingGlassIcon,
+  FunnelIcon,
 } from "@heroicons/react/24/outline";
 
 const defaultItem = {
@@ -24,17 +26,26 @@ const categories = ['Appetizer', 'Main Course', 'Dessert', 'Beverage', 'Other'];
 
 const MenuItems = () => {
   const [items, setItems] = useState([]);
+  const [filteredItems, setFilteredItems] = useState([]);
   const [newItem, setNewItem] = useState(defaultItem);
   const [editingId, setEditingId] = useState(null);
   const [loading, setLoading] = useState(false);
   const [bulkFile, setBulkFile] = useState(null);
   const [otherCategory, setOtherCategory] = useState('');
+  const [selectedImages, setSelectedImages] = useState([]); // For preview
+  // Filter states
+  const [searchQuery, setSearchQuery] = useState('');
+  const [dietaryFilter, setDietaryFilter] = useState('all');
+  const [timeFilter, setTimeFilter] = useState('all');
+  const [priceRange, setPriceRange] = useState([0, 1000]);
+  const [showFilters, setShowFilters] = useState(false);
 
   const fetchItems = async () => {
     try {
       setLoading(true);
       const data = await orgadminApi.getMenuItems();
       setItems(data.menu_items || data);
+      setFilteredItems(data.menu_items || data);
     } catch (error) {
       console.error('Error fetching menu items:', error.message);
     } finally {
@@ -45,6 +56,45 @@ const MenuItems = () => {
   useEffect(() => {
     fetchItems();
   }, []);
+
+  // Apply filters whenever any filter changes
+  useEffect(() => {
+    applyFilters();
+  }, [items, searchQuery, dietaryFilter, timeFilter, priceRange]);
+
+  const applyFilters = () => {
+    let result = [...items];
+
+    // Apply search filter
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      result = result.filter(item => 
+        item.name.toLowerCase().includes(query) ||
+        item.category.toLowerCase().includes(query) ||
+        item.dietary_preference.toLowerCase().includes(query)
+      );
+    }
+
+    // Apply dietary filter
+    if (dietaryFilter !== 'all') {
+      result = result.filter(item => item.dietary_preference === dietaryFilter);
+    }
+
+    // Apply time filter
+    if (timeFilter !== 'all') {
+      result = result.filter(item => {
+        const times = item.available_times.split(',').map(t => t.trim());
+        return times.includes(timeFilter) || times.includes('All Times');
+      });
+    }
+
+    // Apply price filter
+    result = result.filter(item => 
+      item.price >= priceRange[0] && item.price <= priceRange[1]
+    );
+
+    setFilteredItems(result);
+  };
 
   const handleCreateOrUpdate = async () => {
     try {
@@ -116,6 +166,9 @@ const MenuItems = () => {
       setNewItem((prev) => ({ ...prev, [name]: value }));
     }
   };
+
+  // Calculate max price for price range slider
+  const maxPrice = Math.max(...items.map(item => item.price), 1000);
 
   return (
     <div className="min-h-screen bg-blue-900 text-blue-50 p-4 md:p-8">
@@ -281,14 +334,56 @@ const MenuItems = () => {
                 </label>
               ))}
             </div>
-            {/* Image URL */}
-            <input
-              name="img_url"
-              placeholder="Image URL (optional)"
-              className="input-field bg-gray-50 text-blue-900 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500"
-              value={newItem.img_url}
-              onChange={handleChange}
-            />
+            {/* Image Upload */}
+              <div className="flex flex-col gap-2">
+                <label className="font-medium text-blue-900">Images (up to 4)</label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  style={{ display: 'none' }}
+                  id="menu-image-upload"
+                  onChange={e => {
+                    const files = Array.from(e.target.files).slice(0, 4);
+                    setSelectedImages(files);
+                    // If you want to store URLs in newItem.img_url as comma-separated:
+                    setNewItem(prev => ({
+                      ...prev,
+                      img_url: '', // Clear the text input if using uploads
+                    }));
+                  }}
+                />
+                <button
+                  type="button"
+                  className="bg-blue-900 hover:bg-blue-950 text-white font-medium px-4 py-2 rounded-lg transition duration-300"
+                  onClick={() => document.getElementById('menu-image-upload').click()}
+                >
+                  Add Images
+                </button>
+                {/* Preview selected images */}
+                {selectedImages.length > 0 && (
+                  <div className="flex gap-2 mt-2">
+                    {selectedImages.map((file, idx) => (
+                      <div key={idx} className="w-20 h-20 rounded-lg overflow-hidden border border-gray-300 bg-gray-100 flex items-center justify-center">
+                        <img
+                          src={URL.createObjectURL(file)}
+                          alt={`preview-${idx}`}
+                          className="object-cover w-full h-full"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {/* Fallback: manual URL input */}
+                <input
+                  name="img_url"
+                  placeholder="Image URL (optional)"
+                  className="input-field bg-gray-50 text-blue-900 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500 mt-2"
+                  value={newItem.img_url}
+                  onChange={handleChange}
+                  disabled={selectedImages.length > 0}
+                />
+              </div>
             {/* Availability Checkbox */}
             <label className="flex items-center gap-2 text-sm">
               <input
@@ -353,23 +448,194 @@ const MenuItems = () => {
           layout
           className="bg-gray-50 text-blue-900 rounded-3xl p-6 shadow-lg"
         >
-          <h3 className="text-2xl font-semibold mb-6 flex items-center gap-2">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-6 w-6 text-indigo-600"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M4 6h16M4 12h16M4 18h16"
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 gap-4">
+            <h3 className="text-2xl font-semibold flex items-center gap-2">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-6 w-6 text-indigo-600"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 6h16M4 12h16M4 18h16"
+                />
+              </svg>
+              Current Menu
+            </h3>
+            
+            {/* Search Box */}
+            <div className="relative w-full md:w-64">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" />
+              </div>
+              <input
+                type="text"
+                placeholder="Search menu items..."
+                className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
               />
-            </svg>
-            Current Menu
-          </h3>
+            </div>
+            
+            {/* Filter Toggle Button */}
+            <button
+              onClick={() => setShowFilters(!showFilters)}
+              className="flex items-center gap-2 bg-blue-900 hover:bg-blue-950 text-white font-medium px-4 py-2 rounded-lg transition duration-300"
+            >
+              <FunnelIcon className="h-5 w-5" />
+              Filters
+            </button>
+          </div>
+
+          {/* Filters Panel */}
+          {showFilters && (
+            <motion.div 
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.3 }}
+              className="bg-gray-100 p-4 rounded-lg mb-6"
+            >
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {/* Dietary Preference Filter */}
+                <div>
+                  <h4 className="font-medium mb-2">Dietary Preference</h4>
+                  <div className="space-y-2">
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="radio"
+                        name="dietaryFilter"
+                        value="all"
+                        checked={dietaryFilter === 'all'}
+                        onChange={() => setDietaryFilter('all')}
+                        className="form-radio text-blue-600"
+                      />
+                      All
+                    </label>
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="radio"
+                        name="dietaryFilter"
+                        value="Veg"
+                        checked={dietaryFilter === 'Veg'}
+                        onChange={() => setDietaryFilter('Veg')}
+                        className="form-radio text-green-600"
+                      />
+                      Veg
+                    </label>
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="radio"
+                        name="dietaryFilter"
+                        value="Non-Veg"
+                        checked={dietaryFilter === 'Non-Veg'}
+                        onChange={() => setDietaryFilter('Non-Veg')}
+                        className="form-radio text-red-600"
+                      />
+                      Non-Veg
+                    </label>
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="radio"
+                        name="dietaryFilter"
+                        value="Contains Egg"
+                        checked={dietaryFilter === 'Contains Egg'}
+                        onChange={() => setDietaryFilter('Contains Egg')}
+                        className="form-radio text-yellow-600"
+                      />
+                      Contains Egg
+                    </label>
+                  </div>
+                </div>
+
+                {/* Available Times Filter */}
+                <div>
+                  <h4 className="font-medium mb-2">Available Times</h4>
+                  <div className="space-y-2">
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="radio"
+                        name="timeFilter"
+                        value="all"
+                        checked={timeFilter === 'all'}
+                        onChange={() => setTimeFilter('all')}
+                        className="form-radio text-blue-600"
+                      />
+                      All Times
+                    </label>
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="radio"
+                        name="timeFilter"
+                        value="Breakfast"
+                        checked={timeFilter === 'Breakfast'}
+                        onChange={() => setTimeFilter('Breakfast')}
+                        className="form-radio text-blue-600"
+                      />
+                      Breakfast
+                    </label>
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="radio"
+                        name="timeFilter"
+                        value="Lunch"
+                        checked={timeFilter === 'Lunch'}
+                        onChange={() => setTimeFilter('Lunch')}
+                        className="form-radio text-blue-600"
+                      />
+                      Lunch
+                    </label>
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="radio"
+                        name="timeFilter"
+                        value="Dinner"
+                        checked={timeFilter === 'Dinner'}
+                        onChange={() => setTimeFilter('Dinner')}
+                        className="form-radio text-blue-600"
+                      />
+                      Dinner
+                    </label>
+                  </div>
+                </div>
+
+                {/* Price Range Filter */}
+                <div>
+                  <h4 className="font-medium mb-2">
+                    Price Range: ₹{priceRange[0]} - ₹{priceRange[1]}
+                  </h4>
+                  <div className="px-2">
+                    <input
+                      type="range"
+                      min="0"
+                      max={maxPrice}
+                      value={priceRange[0]}
+                      onChange={(e) => setPriceRange([parseInt(e.target.value), priceRange[1]])}
+                      className="w-full mb-2"
+                    />
+                    <input
+                      type="range"
+                      min="0"
+                      max={maxPrice}
+                      value={priceRange[1]}
+                      onChange={(e) => setPriceRange([priceRange[0], parseInt(e.target.value)])}
+                      className="w-full"
+                    />
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+          {/* Results Count */}
+          <div className="mb-4 text-sm text-gray-600">
+            Showing {filteredItems.length} of {items.length} items
+          </div>
+
           {loading ? (
             <div className="text-center py-10">
               <motion.div
@@ -380,14 +646,14 @@ const MenuItems = () => {
               ></motion.div>
               <p className="text-gray-600">Fetching those delicious items...</p>
             </div>
-          ) : items.length === 0 ? (
-            <p className="text-gray-500">No menu items yet. Add some!</p>
+          ) : filteredItems.length === 0 ? (
+            <p className="text-gray-500">No menu items match your filters.</p>
           ) : (
             <motion.div
               layout
               className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
             >
-              {items.map((item) => (
+              {filteredItems.map((item) => (
                 <motion.div
                   key={item.id}
                   layout
