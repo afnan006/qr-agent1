@@ -203,6 +203,9 @@ export function CartProvider({ children }) {
         cartType,
         setCartType,
         isInGroup: isInGroup(),
+        // Add these for chat integration:
+        menuItems: Object.values(menuMap),
+        orderedItems: groupCart.items, // or another source if you track orders separately
       }}
     >
       {children}

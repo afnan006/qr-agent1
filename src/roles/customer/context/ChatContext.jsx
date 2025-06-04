@@ -1,6 +1,5 @@
-
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { customerApi } from '../api/customerApi'; // <-- Add this import
 
 const ChatContext = createContext(null);
 
@@ -20,13 +19,15 @@ export function ChatProvider({ children }) {
 
   const [isTyping, setIsTyping] = useState(false);
   const [isFullChatMode, setIsFullChatMode] = useState(false);
+  const [activePanel, setActivePanel] = useState(null);
+  const [panelData, setPanelData] = useState(null);
 
   // Save messages to sessionStorage whenever they change
   useEffect(() => {
     sessionStorage.setItem('chat_messages', JSON.stringify(messages));
   }, [messages]);
 
-  const sendMessage = (text, sender = 'user') => {
+  const sendMessage = async (text, sender = 'user') => {
     const newMessage = {
       id: `msg_${Date.now()}`,
       sender,
@@ -35,6 +36,30 @@ export function ChatProvider({ children }) {
     };
 
     setMessages((prev) => [...prev, newMessage]);
+
+    // --- MOCK PANEL TRIGGERS ---
+    const lowerText = text.trim().toLowerCase();
+    if (lowerText === 'cart') {
+      setActivePanel('cart');
+      setPanelData(await customerApi.getMockCart());
+      return newMessage;
+    }
+    if (lowerText === 'menu') {
+      setActivePanel('menu');
+      setPanelData(await customerApi.getMockMenu());
+      return newMessage;
+    }
+    if (lowerText === 'payment') {
+      setActivePanel('payment');
+      setPanelData(await customerApi.getMockPayment());
+      return newMessage;
+    }
+    if (lowerText === 'orders') {
+      setActivePanel('orders');
+      setPanelData(await customerApi.getMockOrders());
+      return newMessage;
+    }
+    // --- END MOCK PANEL TRIGGERS ---
 
     // If user sent a message, simulate agent typing and response
     if (sender === 'user') {
@@ -96,6 +121,9 @@ export function ChatProvider({ children }) {
         clearChat,
         isFullChatMode,
         toggleChatMode: () => setIsFullChatMode((prev) => !prev),
+        activePanel,
+        setActivePanel,
+        panelData,
       }}
     >
       {children}

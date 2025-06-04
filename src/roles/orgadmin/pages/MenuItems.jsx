@@ -107,11 +107,12 @@ const MenuItems = () => {
       if (editingId) {
         await orgadminApi.updateMenuItem(editingId, payload);
       } else {
-        await orgadminApi.createMenuItem(payload);
+        await orgadminApi.createMenuItem(payload, selectedImages); // Pass images here!
       }
       setNewItem(defaultItem);
       setOtherCategory('');
       setEditingId(null);
+      setSelectedImages([]); // Clear images after submit
       await fetchItems();
     } catch (err) {
       alert(err.message);

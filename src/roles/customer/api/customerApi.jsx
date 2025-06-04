@@ -17,42 +17,53 @@ export const customerApi = {
   },
 
   // Place Order
-  placeOrder: async (orderData) => {
-    try {
-      const response = await fetch(`${BASE_URL}/order`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('jwt')}`,
-        },
-        body: JSON.stringify(orderData),
-      });
-      if (!response.ok) throw new Error((await response.json()).error || 'Failed to place order');
-      return response.json();
-    } catch (err) {
-      console.error('Error placing order:', err.message);
-      throw err;
-    }
+  placeOrder: async ({ table_id, organization_id, group_id, member_token }) => {
+    const jwt = localStorage.getItem('jwt');
+    const payload = { table_id, organization_id, group_id, member_token };
+    const response = await fetch(`${BASE_URL}/order`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${jwt}`,
+      },
+      body: JSON.stringify(payload),
+    });
+    if (!response.ok) throw new Error((await response.json()).error || 'Failed to place order');
+    return response.json();
   },
 
   // Get Order Status
   getOrderStatus: async (orderId) => {
-    try {
-      const response = await fetch(`${BASE_URL}/order/${orderId}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('jwt')}`,
-        },
-      });
-      if (!response.ok) throw new Error((await response.json()).error || 'Failed to fetch order status');
-      return response.json();
-    } catch (err) {
-      console.error('Error fetching order status:', err.message);
-      throw err;
-    }
-  },
+    const jwt = localStorage.getItem('jwt');
+    let url = `${BASE_URL}/order/${orderId}`;
+    const headers = {
+      'Content-Type': 'application/json',
+    };
 
+    if (jwt) {
+      headers['Authorization'] = `Bearer ${jwt}`;
+      console.log('[OrderStatus] Using JWT:', jwt);
+    }
+
+    const response = await fetch(url, {
+      method: 'GET',
+      headers,
+    });
+    if (!response.ok) {
+      let errorMsg = 'Failed to fetch order status';
+      try {
+        const errorData = await response.clone().json();
+        errorMsg = errorData.error || errorMsg;
+      } catch {
+        errorMsg = response.statusText || errorMsg;
+      }
+      console.error('[OrderStatus] Error:', errorMsg);
+      throw new Error(errorMsg);
+    }
+    const data = await response.json();
+    console.log('[OrderStatus] Response:', data);
+    return data;
+  },
   // Add Item to Cart
   addItemToCart: async (cartItem) => {
     const orgId = localStorage.getItem('organization_id');
@@ -306,25 +317,43 @@ export const customerApi = {
       if (result && result.group_id && result.member_token) {
         localStorage.setItem('group_id', result.group_id);
         localStorage.setItem('member_token', result.member_token);
-        if (result.customer_name) {
-          localStorage.setItem('customer_name', result.customer_name);
-        }
-      } else if (result && result.group_id) {
-        // If backend does not return member_token, join as member
-        const customerName = localStorage.getItem('customer_name') || 'Guest';
-        const joinRes = await customerApi.joinGroup(result.group_id, customerName);
-        if (joinRes && joinRes.member_token) {
-          localStorage.setItem('group_id', result.group_id);
-          localStorage.setItem('member_token', joinRes.member_token);
-          if (joinRes.customer_name) {
-            localStorage.setItem('customer_name', joinRes.customer_name);
-          }
-        }
+        // Optionally handle customer_name or other fields here
+        // if (result.customer_name) {
+        //   localStorage.setItem('customer_name', result.customer_name);
+        // }
       }
+      // else handle joinGroup if needed..
+      // else if (result && result.group_id) { ... }
       return result;
     } catch (err) {
       console.error('Error initializing group:', err.message);
       throw err;
     }
   },
+
+ // Mock APIs for development/testing
+getMockMenu: async () => [
+  { id: 1, name: 'Pizza', price: 299, description: 'Cheesy pizza', image: '/pizza.jpg' },
+  { id: 2, name: 'Veg Burger', price: 199, description: 'Fresh veggie burger', image: '/burger.jpg' },
+  { id: 3, name: 'Pasta Alfredo', price: 249, description: 'Creamy Alfredo pasta', image: '/pasta.jpg' },
+  { id: 4, name: 'French Fries', price: 99, description: 'Crispy golden fries', image: '/fries.jpg' },
+  { id: 5, name: 'Chocolate Shake', price: 149, description: 'Rich chocolate shake', image: '/shake.jpg' },
+],
+getMockCart: async () => ({
+  items: [
+    { id: 1, name: 'Pizza', price: 299, description: 'Cheesy pizza', image: '/pizza.jpg', quantity: 2 },
+    { id: 2, name: 'French Fries', price: 99, description: 'Crispy golden fries', image: '/fries.jpg', quantity: 1 },
+    { id: 3, name: 'Chocolate Shake', price: 149, description: 'Rich chocolate shake', image: '/shake.jpg', quantity: 1 },
+  ],
+  total: 846,
+}),
+getMockOrders: async () => [
+  { id: 1, name: 'Veg Burger', price: 199, description: 'Fresh veggie burger', image: '/burger.jpg', quantity: 1 },
+  { id: 2, name: 'Pasta Alfredo', price: 249, description: 'Creamy Alfredo pasta', image: '/pasta.jpg', quantity: 2 },
+],
+getMockPayment: async () => ({
+  total: 846,
+  tax: 84.6,
+  grandTotal: 930.6,
+}),
 };

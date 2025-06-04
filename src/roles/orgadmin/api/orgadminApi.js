@@ -105,32 +105,39 @@ export const orgadminApi = {
   },
 
   // Create a menu item
-  createMenuItem: async (menuItemData) => {
+  createMenuItem: async (menuItemData, imageFiles = []) => {
     const token = orgadminApi._getToken();
+    const formData = new FormData();
+
+    // Append fields
+    formData.append('name', menuItemData.name);
+    formData.append('price', menuItemData.price);
+    if (menuItemData.category) formData.append('category', menuItemData.category);
+    if (menuItemData.dietary_preference) formData.append('dietary_preference', menuItemData.dietary_preference);
+    if (menuItemData.available_times) formData.append('available_times', menuItemData.available_times);
+
+    // Append images (up to 4)
+    imageFiles.slice(0, 4).forEach(file => {
+      formData.append('images', file);
+    });
+
     try {
-      console.log('🌐 Sending POST request to:', `${API_URL}/menu/items`);
-      const response = await fetch(`${API_URL}/menu/items`, {
+      const response = await fetch(`https://qr-agent.onrender.com/api/organizations/menu/items`, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-          Accept: 'application/json',
+          // Do NOT set Content-Type; browser will set it for FormData
         },
-        body: JSON.stringify(menuItemData),
+        body: formData,
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        console.error('❌ Failed to create menu item. Response status:', response.status);
-        console.error('❌ Failed to create menu item. Response data:', errorData);
         throw new Error(errorData.error || 'Failed to create menu item.');
       }
 
-      const data = await response.json();
-      console.log('✅ Menu item created:', data);
-      return data;
+      return response.json();
     } catch (error) {
-      console.error('🔥 Error in createMenuItem:', error.message);
       throw error;
     }
   },

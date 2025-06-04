@@ -1,8 +1,9 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Trash2 } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
 import { useRef } from 'react';
+import { customerApi } from '../../api/customerApi';
 export default function CartSlideOver() {
   const {
     cart = { items: [], total: 0 },
@@ -19,9 +20,27 @@ export default function CartSlideOver() {
     isInGroup,
   } = useCart();
 
+  const [orderStatus, setOrderStatus] = useState(null);
+  const [orderId, setOrderId] = useState(null);
+  const currentUserName = localStorage.getItem('customer_name') || 'You';
   useEffect(() => {
     fetchCart(cartType);
   }, [cartType, isCartOpen, fetchCart]);
+
+  useEffect(() => {
+    let interval;
+    if (orderId) {
+      interval = setInterval(async () => {
+        try {
+          const statusRes = await customerApi.getOrderStatus(orderId);
+          setOrderStatus(statusRes); // store the full order object
+        } catch (err) {
+          setOrderStatus({ status: err.message });
+        }
+      }, 5000); // Poll every 5 seconds
+    }
+    return () => clearInterval(interval);
+  }, [orderId]);
 
   let itemsToShow = [];
   let totalToShow = 0;
@@ -41,21 +60,16 @@ export default function CartSlideOver() {
       const organizationId = localStorage.getItem('organization_id');
       const groupId = localStorage.getItem('group_id');
       const memberToken = localStorage.getItem('member_token');
-      const customerName = localStorage.getItem('customer_name') || 'Guest';
-      
-      let payload = {
+      // Only group orders for now
+      const result = await customerApi.placeOrder({
         table_id: Number(tableId),
         organization_id: Number(organizationId),
-        customer_name: customerName,
-      };
-
-      if (groupId && memberToken) {
-        payload.group_id = Number(groupId);
-        payload.member_token = memberToken;
-      }
-
-      await customerApi.placeOrder(payload);
-      alert('Order placed successfully!');
+        group_id: Number(groupId),
+        member_token: memberToken,
+      });
+      alert(result.message || 'Order placed successfully!');
+      setOrderId(result.order_id);
+      setOrderStatus('pending');
       toggleCart();
     } catch (err) {
       alert(err.message || 'Failed to place order.');
@@ -144,42 +158,51 @@ export default function CartSlideOver() {
                   </div>
                 ) : (
                   <div className="divide-y">
-                    {itemsToShow.map((item) => {
-                      const menuItem = menuMap[String(item.menu_item_id)] || menuMap[String(item.id)];
-                      return (
-                        <div key={item.id} className="py-4 flex">
-                          <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center mr-3">
-                            <span className="text-xl">{menuItem?.emoji || '🍽️'}</span>
-                          </div>
-                          <div className="flex-1">
-                            <div className="flex justify-between">
-                              <div>
-                                <h3 className="font-medium">
-                                  {menuItem ? menuItem.name : `Unknown item (${item.menu_item_id || item.id})`}
-                                </h3>
-                                {cartType === 'group' && item.customer_name && (
-                                  <p className="text-sm text-gray-500">Ordered by: {item.customer_name}</p>
-                                )}
-                              </div>
-                              <span className="font-mono">
-                                {typeof menuItem?.price === 'number'
-                                  ? `₹${(menuItem.price * item.quantity).toFixed(2)}`
-                                  : '--'}
-                              </span>
-                            </div>
-                            <div className="flex items-center justify-between mt-2">
-                              <span className="mx-2 w-6 text-center">{item.quantity}</span>
-                              <button
-                                className="ml-2 text-red-500 hover:text-red-700"
-                                onClick={() => handleRemoveItem(item.id)}
-                              >
-                                <Trash2 size={18} />
-                              </button>
-                            </div>
-                          </div>
+                    {/* Group items by customer_name */}
+                    {Object.entries(
+                      itemsToShow.reduce((acc, item) => {
+                        // Use backend name for grouping
+                        const name = item.customer_name || item.ordered_by || 'Unknown';
+                        if (!acc[name]) acc[name] = [];
+                        acc[name].push(item);
+                        return acc;
+                      }, {})
+                    ).map(([customer, items]) => (
+                      <div key={customer} className="mb-4">
+                        <div className="font-semibold text-[#4C4C9D] mb-2">
+                          {customer === currentUserName ? 'You' : customer}:
                         </div>
-                      );
-                    })}
+                        {items.map((item) => {
+                          const menuItem = menuMap[String(item.menu_item_id)] || menuMap[String(item.id)];
+                          return (
+                            <div key={item.id} className="py-2 flex items-center border-b last:border-b-0">
+                              <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center mr-3">
+                                <span className="text-xl">{menuItem?.emoji || '🍽️'}</span>
+                              </div>
+                              <div className="flex-1">
+                                <div className="flex justify-between items-center">
+                                  <span className="font-medium">{menuItem ? menuItem.name : `Unknown (${item.menu_item_id || item.id})`}</span>
+                                  <span className="font-mono text-sm">
+                                    {typeof menuItem?.price === 'number'
+                                      ? `₹${(menuItem.price * item.quantity).toFixed(2)}`
+                                      : '--'}
+                                  </span>
+                                </div>
+                                <div className="flex items-center gap-2 mt-1">
+                                  <span className="w-6 text-center">{item.quantity}</span>
+                                  <button
+                                    className="text-red-500 hover:text-red-700"
+                                    onClick={() => handleRemoveItem(item.id)}
+                                  >
+                                    <Trash2 size={18} />
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ))}
                   </div>
                 )}
               </div>
@@ -203,6 +226,46 @@ export default function CartSlideOver() {
                   Place Order
                 </button>
               </div>
+              {orderId && (
+  <div className="p-4 border-t bg-green-50 text-green-900">
+    <div className="font-semibold">Order Status: {orderStatus?.status || orderStatus || 'pending'}</div>
+    <div>Order ID: {orderId}</div>
+    {orderStatus?.items && (
+      <div className="mt-2">
+        <div className="font-semibold mb-1">Ordered Items:</div>
+        {Object.entries(
+          orderStatus.items.reduce((acc, item) => {
+            // Use backend name for grouping
+            const name = item.ordered_by || item.customer_name || 'Unknown';
+            if (!acc[name]) acc[name] = [];
+            acc[name].push(item);
+            return acc;
+          }, {})
+        ).map(([customer, items]) => (
+          <div key={customer} className="mb-2">
+            <div className="font-semibold text-[#4C4C9D]">
+              {customer === currentUserName ? 'You' : customer}:
+            </div>
+            <ul className="pl-5">
+              {items.map((item, idx) => (
+                <li key={idx} className="flex justify-between items-center py-1">
+                  <span>{item.name}</span>
+                  <span className="mx-2">× {item.quantity}</span>
+                  {item.price && (
+                    <span className="text-xs text-gray-600 ml-2">₹{item.price}</span>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+        <div className="mt-2 font-semibold">
+          Total: ₹{orderStatus.total || '--'}
+        </div>
+      </div>
+    )}
+  </div>
+)}
             </div>
           </motion.div>
         </>
