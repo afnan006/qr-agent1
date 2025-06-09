@@ -1,7 +1,7 @@
 // src/roles/customer/router.jsx
 
-import React, { Suspense, lazy } from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import React, { Suspense, lazy, useEffect } from 'react';
+import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 
 // Lazy load Customer pages for better performance
 const WelcomePage = lazy(() => import('./pages/WelcomePage'));
@@ -30,6 +30,20 @@ const PageLoader = () => (
   </div>
 );
 
+function DevBypass() {
+  const navigate = useNavigate();
+  useEffect(() => {
+    // Set fake tokens and IDs for dev mode
+    localStorage.setItem('jwt', 'dev-jwt-token');
+    localStorage.setItem('organization_id', '1');
+    localStorage.setItem('table_id', '1');
+    localStorage.setItem('customer_name', 'Dev User');
+    // Add any other mock values needed
+    navigate('/customer/chat', { replace: true });
+  }, [navigate]);
+  return <div className="p-8 text-center">Bypassing login... Redirecting to chat.</div>;
+}
+
 export default function CustomerRouter() {
   return (
     <UserProvider>
@@ -54,6 +68,9 @@ export default function CustomerRouter() {
                 
                 {/* Payment Page */}
                 <Route path="/payment" element={<PaymentPage />} />
+
+                {/* Dev Bypass Route */}
+                <Route path="/dev-bypass" element={<DevBypass />} />
 
                 {/* Fallback Route */}
                 <Route path="*" element={<NotFoundPage />} />

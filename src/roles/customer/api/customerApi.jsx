@@ -331,29 +331,265 @@ export const customerApi = {
     }
   },
 
- // Mock APIs for development/testing
-getMockMenu: async () => [
-  { id: 1, name: 'Pizza', price: 299, description: 'Cheesy pizza', image: '/pizza.jpg' },
-  { id: 2, name: 'Veg Burger', price: 199, description: 'Fresh veggie burger', image: '/burger.jpg' },
-  { id: 3, name: 'Pasta Alfredo', price: 249, description: 'Creamy Alfredo pasta', image: '/pasta.jpg' },
-  { id: 4, name: 'French Fries', price: 99, description: 'Crispy golden fries', image: '/fries.jpg' },
-  { id: 5, name: 'Chocolate Shake', price: 149, description: 'Rich chocolate shake', image: '/shake.jpg' },
+// getMockMenu: async () => [
+//   {
+//     id: 1,
+//     name: 'Pizza',
+//     price: 299,
+//     description: 'Cheesy pizza',
+//     image: 'https://cdn.pixabay.com/photo/2017/12/09/08/18/pizza-3007395_1280.jpg',
+//     addOns: [
+//       { id: 101, name: 'Extra Cheese', price: 50 },
+//       { id: 102, name: 'Mushrooms', price: 40 },
+//       { id: 103, name: 'Pepperoni', price: 60 },
+//       { id: 104, name: 'Jalapeños', price: 30 },
+//       { id: 105, name: 'Olives', price: 35 },
+//       { id: 106, name: 'Pineapple', price: 45 },
+//       { id: 107, name: 'BBQ Sauce', price: 20 },
+//     ]
+//   },
+//   {
+//     id: 2,
+//     name: 'Veg Burger',
+//     price: 199,
+//     description: 'Fresh veggie burger',
+//     image: 'https://cdn.pixabay.com/photo/2016/03/05/19/02/hamburger-1238246_1280.jpg',
+//     addOns: [
+//       { id: 201, name: 'Cheese Slice', price: 30 },
+//       { id: 202, name: 'Bacon', price: 50 },
+//       { id: 203, name: 'Avocado', price: 60 },
+//       { id: 204, name: 'Fried Egg', price: 40 },
+//       { id: 205, name: 'Caramelized Onions', price: 25 },
+//       { id: 206, name: 'Spicy Mayo', price: 15 },
+//     ]
+//   },
+//   {
+//     id: 3,
+//     name: 'Pasta Alfredo',
+//     price: 249,
+//     description: 'Creamy Alfredo pasta',
+//     image: 'https://images.pexels.com/photos/1437267/pexels-photo-1437267.jpeg',
+//     addOns: [
+//       { id: 301, name: 'Grilled Chicken', price: 80 },
+//       { id: 302, name: 'Shrimp', price: 100 },
+//       { id: 303, name: 'Truffle Oil', price: 60 },
+//     ]
+//   },
+//   {
+//     id: 4,
+//     name: 'French Fries',
+//     price: 99,
+//     description: 'Crispy golden fries',
+//     image: 'https://images.pexels.com/photos/1583884/pexels-photo-1583884.jpeg',
+//     addOns: [
+//       { id: 401, name: 'Cheese Dip', price: 40 },
+//       { id: 402, name: 'Peri-Peri', price: 20 },
+//       { id: 403, name: 'Sour Cream', price: 30 },
+//       { id: 404, name: 'Bacon Bits', price: 50 },
+//     ]
+//   },
+//   {
+//     id: 6,
+//     name: 'Chicken Burger',
+//     price: 399,
+//     description: 'Fresh Chicken burger',
+//     image: 'https://cdn.pixabay.com/photo/2016/03/05/19/02/hamburger-1238246_1280.jpg',
+//     addOns: [
+//       { id: 201, name: 'Cheese Slice', price: 30 },
+//       { id: 202, name: 'Bacon', price: 50 },
+//       { id: 203, name: 'Avocado', price: 60 },
+//       { id: 204, name: 'Fried Egg', price: 40 },
+//       { id: 205, name: 'Caramelized Onions', price: 25 },
+//       { id: 206, name: 'Spicy Mayo', price: 15 },
+//     ]
+//   },
+//   {
+//     id: 5,
+//     name: 'Chocolate Shake',
+//     price: 149,
+//     description: 'Rich chocolate shake',
+//     image: 'https://images.pexels.com/photos/3026808/pexels-photo-3026808.jpeg',
+//     addOns: [] // No add-ons for shake to test empty state
+//   }
+// ],
+
+// -----------------------------------------
+getMockMenu: async () => [  {
+    id: 1,
+    name: 'Pizza',
+    price: 299,
+    description: 'Cheesy pizza with a crispy crust',
+    image: 'https://cdn.pixabay.com/photo/2017/12/09/08/18/pizza-3007395_1280.jpg',
+    addOns: [
+      { id: 101, name: 'Extra Cheese', price: 50 },
+      { id: 102, name: 'Mushrooms', price: 40 },
+      { id: 103, name: 'Pepperoni', price: 60 },
+      { id: 104, name: 'Jalapeños', price: 30 },
+      { id: 105, name: 'Olives', price: 35 },
+      { id: 106, name: 'Pineapple', price: 45 },
+      { id: 107, name: 'BBQ Sauce', price: 20 },
+    ]
+  },
+  {
+    id: 2,
+    name: 'Veg Burger',
+    price: 199,
+    description: 'Fresh veggie burger with crunchy lettuce',
+    image: 'https://cdn.pixabay.com/photo/2016/03/05/19/02/hamburger-1238246_1280.jpg',
+    addOns: [
+      { id: 201, name: 'Cheese Slice', price: 30 },
+      { id: 202, name: 'Bacon (veg-style)', price: 50 },
+      { id: 203, name: 'Avocado', price: 60 },
+      { id: 204, name: 'Fried Egg', price: 40 },
+      { id: 205, name: 'Caramelized Onions', price: 25 },
+      { id: 206, name: 'Spicy Mayo', price: 15 },
+    ]
+  },
+  {
+    id: 3,
+    name: 'Pasta Alfredo',
+    price: 249,
+    description: 'Creamy Alfredo pasta topped with parmesan',
+    image: 'https://images.pexels.com/photos/1437267/pexels-photo-1437267.jpeg',
+    addOns: [
+      { id: 301, name: 'Grilled Chicken', price: 80 },
+      { id: 302, name: 'Shrimp', price: 100 },
+      { id: 303, name: 'Truffle Oil', price: 60 },
+    ]
+  },
+  {
+    id: 4,
+    name: 'French Fries',
+    price: 99,
+    description: 'Crispy golden fries served hot',
+    image: 'https://images.pexels.com/photos/1583884/pexels-photo-1583884.jpeg',
+    addOns: [
+      { id: 401, name: 'Cheese Dip', price: 40 },
+      { id: 402, name: 'Peri-Peri', price: 20 },
+      { id: 403, name: 'Sour Cream', price: 30 },
+      { id: 404, name: 'Bacon Bits', price: 50 },
+    ]
+  },
+  {
+    id: 5,
+    name: 'Chicken Burger',
+    price: 399,
+    description: 'Juicy chicken patty in a soft bun',
+    image: 'https://cdn.pixabay.com/photo/2014/10/23/18/05/burger-500054_1280.jpg',
+    addOns: [
+      { id: 501, name: 'Double Patty', price: 90 },
+      { id: 502, name: 'Pickles', price: 20 },
+      { id: 503, name: 'Cheddar Cheese', price: 35 },
+    ]
+  },
+  {
+    id: 6,
+    name: 'Chocolate Shake',
+    price: 149,
+    description: 'Rich chocolate shake with whipped cream',
+    image: 'https://images.pexels.com/photos/3026808/pexels-photo-3026808.jpeg',
+    addOns: [] // No add-ons
+  },
+  {
+    id: 7,
+    name: 'Sushi Platter',
+    price: 499,
+    description: 'Assorted sushi rolls with wasabi and soy sauce',
+    image: 'https://cdn.pixabay.com/photo/2017/05/07/08/56/sushi-2295761_1280.jpg',
+    addOns: [
+      { id: 701, name: 'Extra Wasabi', price: 20 },
+      { id: 702, name: 'Spicy Mayo', price: 25 },
+      { id: 703, name: 'Teriyaki Glaze', price: 30 },
+    ]
+  },
+  {
+    id: 8,
+    name: 'Grilled Sandwich',
+    price: 179,
+    description: 'Toasty sandwich with mixed veggies and sauces',
+    image: 'https://cdn.pixabay.com/photo/2014/10/23/18/05/sandwich-500054_1280.jpg',
+    addOns: [
+      { id: 801, name: 'Extra Cheese', price: 25 },
+      { id: 802, name: 'Paneer Tikka Filling', price: 45 },
+      { id: 803, name: 'Mint Chutney Dip', price: 15 },
+    ]
+  },
+  {
+    id: 9,
+    name: 'Masala Dosa',
+    price: 109,
+    description: 'Classic South Indian crispy dosa with masala',
+    image: 'https://cdn.pixabay.com/photo/2020/07/21/05/45/indian-food-5426141_1280.jpg',
+    addOns: [
+      { id: 901, name: 'Extra Masala', price: 20 },
+      { id: 902, name: 'Coconut Chutney', price: 15 },
+      { id: 903, name: 'Butter Topping', price: 25 },
+    ]
+  },
+  {
+    id: 10,
+    name: 'Mango Lassi',
+    price: 89,
+    description: 'Chilled mango lassi, smooth and refreshing',
+    image: 'https://cdn.pixabay.com/photo/2016/03/05/19/02/mango-lassi-1238245_1280.jpg',
+    addOns: [] // No add-ons
+  }
 ],
+
+
 getMockCart: async () => ({
   items: [
-    { id: 1, name: 'Pizza', price: 299, description: 'Cheesy pizza', image: '/pizza.jpg', quantity: 2 },
-    { id: 2, name: 'French Fries', price: 99, description: 'Crispy golden fries', image: '/fries.jpg', quantity: 1 },
-    { id: 3, name: 'Chocolate Shake', price: 149, description: 'Rich chocolate shake', image: '/shake.jpg', quantity: 1 },
+    {
+      id: 1,
+      name: 'Pizza',
+      price: 299,
+      description: 'Cheesy pizza',
+      image: 'https://cdn.pixabay.com/photo/2017/12/09/08/18/pizza-3007395_1280.jpg',
+      quantity: 2,
+    },
+    {
+      id: 4,
+      name: 'French Fries',
+      price: 99,
+      description: 'Crispy golden fries',
+      image: 'https://images.pexels.com/photos/1583884/pexels-photo-1583884.jpeg',
+      quantity: 1,
+    },
+    {
+      id: 5,
+      name: 'Chocolate Shake',
+      price: 149,
+      description: 'Rich chocolate shake',
+      image: 'https://images.pexels.com/photos/3026808/pexels-photo-3026808.jpeg',
+      quantity: 1,
+    },
   ],
   total: 846,
 }),
+
 getMockOrders: async () => [
-  { id: 1, name: 'Veg Burger', price: 199, description: 'Fresh veggie burger', image: '/burger.jpg', quantity: 1 },
-  { id: 2, name: 'Pasta Alfredo', price: 249, description: 'Creamy Alfredo pasta', image: '/pasta.jpg', quantity: 2 },
+  {
+    id: 2,
+    name: 'Veg Burger',
+    price: 199,
+    description: 'Fresh veggie burger',
+    image: 'https://cdn.pixabay.com/photo/2016/03/05/19/02/hamburger-1238246_1280.jpg',
+    quantity: 1,
+  },
+  {
+    id: 3,
+    name: 'Pasta Alfredo',
+    price: 249,
+    description: 'Creamy Alfredo pasta',
+    image: 'https://images.pexels.com/photos/1437267/pexels-photo-1437267.jpeg',
+    quantity: 2,
+  },
 ],
+
 getMockPayment: async () => ({
   total: 846,
   tax: 84.6,
   grandTotal: 930.6,
 }),
+
 };
