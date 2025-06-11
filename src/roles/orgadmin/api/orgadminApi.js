@@ -1,7 +1,10 @@
 import { jwtDecode } from 'jwt-decode';
 
-const BASE_URL = 'https://qr-agent.onrender.com//org-admin';
-const API_URL = 'https://qr-agent.onrender.com/api/organizations';
+// const BASE_URL = 'https://qr-agent.onrender.com//org-admin';
+// const API_URL = 'https://qr-agent.onrender.com/api/organizations';
+
+const BASE_URL = `${import.meta.env.VITE_API_BASE_URL}/org-admin`;
+const API_URL = `${import.meta.env.VITE_API_BASE_URL}/api/organizations`;
 
 export const orgadminApi = {
   // Login: Authenticate and store JWT

@@ -1,5 +1,7 @@
-const BASE_URL = 'https://qr-agent.onrender.com/api/customer';
-const API_URL = 'https://qr-agent.onrender.com/api';
+// const BASE_URL = 'https://qr-agent.onrender.com/api/customer';
+// const API_URL = 'https://qr-agent.onrender.com/api';
+const BASE_URL = `${import.meta.env.VITE_API_BASE_URL}/api/customer`;
+const API_URL = `${import.meta.env.VITE_API_BASE_URL}/api`;
 
 export const customerApi = {
   // Get Menu

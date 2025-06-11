@@ -1,6 +1,8 @@
-const BASE_URL = 'https://qr-agent.onrender.com';
-const API_URL = 'https://qr-agent.onrender.com/api/kitchen';
+// const BASE_URL = 'https://qr-agent.onrender.com';
+// const API_URL = 'https://qr-agent.onrender.com/api/kitchen';
 
+const BASE_URL = `${import.meta.env.VITE_API_BASE_URL}`; // https://qr-agent.onrender.com
+const API_URL = `${import.meta.env.VITE_API_BASE_URL}/api/kitchen`; // https://qr-agent.onrender.com/api/kitchen
 export const kitchenApi = {
   // ✅ Login with correct staff_token return
   login: async (credentials) => {

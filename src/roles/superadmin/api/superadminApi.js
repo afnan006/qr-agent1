@@ -1,5 +1,7 @@
-const BASE_URL = 'https://qr-agent.onrender.com/superadmin'; // For login
-const API_URL = 'https://qr-agent.onrender.com/api/superadmin'; // For orgs and other CRUD
+// const BASE_URL = 'https://qr-agent.onrender.com/superadmin'; // For login
+// const API_URL = 'https://qr-agent.onrender.com/api/superadmin'; // For orgs and other CRUD
+const BASE_URL = `${import.meta.env.VITE_API_BASE_URL}/superadmin`; // For login
+const API_URL = `${import.meta.env.VITE_API_BASE_URL}/api/superadmin`; // For orgs and other CRUD
 const TOKEN_KEY = 'superadmin_token';
 const USER_KEY = 'superadmin_user';
 const SESSION_TYPE_KEY = 'superadmin_session_type';
